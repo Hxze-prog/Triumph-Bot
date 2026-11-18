@@ -179,7 +179,7 @@ PUBLIC COMMAND REFERENCE (added during Phase 12)
 [x] Navigation: Commands link in site header and footer
 
 PHASE 13 - DEPLOYMENT & HOSTING
-[~] Website - Vercel: config/env matrix/runbook prepared; live import, env vars, deploy, domain, production test pending
+[~] Website - Vercel: GitHub repository pushed; live import, env vars, deploy, domain, production test pending
 [~] Database - Supabase: migration/RLS/backup runbook prepared; production apply, credential wiring, backup proof pending
 [~] Discord Bot - Render: render.yaml start/health/env config ready; live Blueprint deploy and gateway verification pending
 [~] Monitoring - UptimeRobot: 5-min HTTP/keyword monitor procedure prepared; account, monitors, HTTP test, alerts pending
@@ -359,3 +359,7 @@ CHECKPOINT LOG
   - updated .gitignore: ignore session.txt, *.tsbuildinfo, dashboard/.vercel; keep bot/dashboard .env.example files trackable
   - updated README with Phase 13 deployment summary and runbook link
   - live deployment blocked on external actions: push repository to GitHub, apply/verify Supabase production migrations, create Render Blueprint + env vars, import Vercel project + env/domain/OAuth redirects, create UptimeRobot monitors
+[2026-11-19] Phase 13 GitHub integration:
+  - initial root commit 67e4579 pushed to origin/master; GitHub default branch is master; repository is public at https://github.com/Hxze-prog/Triumph-Bot
+  - environment audit: no VERCEL_TOKEN, RENDER_API_KEY, SUPABASE_ACCESS_TOKEN, SUPABASE_DB_URL, or DATABASE_URL; Vercel/Render/Supabase CLIs not installed, so platform deployments require account authorization
+  - next: authorize Vercel and Render against the repository, set env vars from docs/DEPLOYMENT.md, apply Supabase migrations, then run scripts/verify_deployment.ps1
