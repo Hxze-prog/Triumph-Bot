@@ -179,11 +179,11 @@ PUBLIC COMMAND REFERENCE (added during Phase 12)
 [x] Navigation: Commands link in site header and footer
 
 PHASE 13 - DEPLOYMENT & HOSTING
-[~] Website - Vercel: GitHub repository pushed; live import, env vars, deploy, domain, production test pending
-[~] Database - Supabase: migration/RLS/backup runbook prepared; production apply, credential wiring, backup proof pending
-[~] Discord Bot - Render: render.yaml start/health/env config ready; live Blueprint deploy and gateway verification pending
-[~] Monitoring - UptimeRobot: 5-min HTTP/keyword monitor procedure prepared; account, monitors, HTTP test, alerts pending
-PHASE 13: IN PROGRESS
+[x] Website - Vercel: deployed at https://triumph-bot-bice.vercel.app; production env/auth verified; GitHub auto-deploy status success
+[x] Database - Supabase: schema/connectivity verified, dashboard admin row present, anonymized RLS reads blocked, backup/export strategy documented
+[x] Discord Bot - Render: deployed at https://triumph-bot.onrender.com; /health 200 with bot_ready=true and guilds=1
+[x] Monitoring - UptimeRobot: Render health and Vercel dashboard monitors Up on 5-minute checks
+PHASE 13: COMPLETE
 
 PHASE 14 - TESTING & QUALITY ASSURANCE
 [ ] Test all bot commands
@@ -363,3 +363,14 @@ CHECKPOINT LOG
   - initial root commit 67e4579 pushed to origin/master; GitHub default branch is master; repository is public at https://github.com/Hxze-prog/Triumph-Bot
   - environment audit: no VERCEL_TOKEN, RENDER_API_KEY, SUPABASE_ACCESS_TOKEN, SUPABASE_DB_URL, or DATABASE_URL; Vercel/Render/Supabase CLIs not installed, so platform deployments require account authorization
   - next: authorize Vercel and Render against the repository, set env vars from docs/DEPLOYMENT.md, apply Supabase migrations, then run scripts/verify_deployment.ps1
+[2026-11-19] Phase 13 completion:
+  - live dashboard: https://triumph-bot-bice.vercel.app; Vercel GitHub integration deployment status success
+  - live bot: https://triumph-bot.onrender.com/health -> 200 with status=ok, bot_ready=true, guilds=1, discord_configured=true, supabase_configured=true
+  - deployment verification: scripts/verify_deployment.ps1 10/10 PASS (/, /command, /terms, /privacy, /login, health status/config/guild checks)
+  - auth: production Discord login verified; Supabase Site URL and /auth/callback redirect corrected to the Vercel domain; callback handles missing/valid codes
+  - Supabase: required tables reachable; dashboard_admins row verified for guild 1569030756515323974 / Discord user 1111664537846951946; anon REST queries return 0 rows, confirming RLS enforcement; backup/export strategy remains in docs/DEPLOYMENT.md
+  - UptimeRobot: Render health and Vercel dashboard monitors Up on 5-minute checks
+  - Phase 13 marked COMPLETE; restart persistence and full command/functional checks remain in Phase 14
+[2026-11-19] Repository cleanup:
+  - removed root Triumph_icon.png: byte-identical duplicate of dashboard/public/triumph-icon.png and dashboard/src/app/icon.png; dashboard copies retained
+  - removed root requirements.txt: notes-only duplicate with no installable dependencies; Render installs from bot/requirements.txt under rootDir bot

@@ -644,12 +644,19 @@ Configure each channel with `!logs set`, then trigger the event:
 
 Runbook: [docs/DEPLOYMENT.md](DEPLOYMENT.md). Automated check: `scripts/verify_deployment.ps1`.
 
-- [ ] Render deploy succeeds; start command `python main.py`; logs show all cogs loaded.
-- [ ] Render `/health` returns 200; UptimeRobot monitors it every 5 minutes.
-- [ ] Vercel deploy succeeds; production URL, env vars, and auth callback configured.
-- [ ] Production dashboard login works; Supabase RLS still blocks cross-guild access.
+Phase 13 deployment completed 2026-11-19 against
+`https://triumph-bot-bice.vercel.app` and
+`https://triumph-bot.onrender.com/health`.
+
+- [x] Render deploy succeeds; start command `python main.py`; health confirms the bot is ready and connected to the guild.
+- [x] Render `/health` returns 200; UptimeRobot monitors it every 5 minutes.
+- [x] Vercel deploy succeeds; production URL, env vars, and auth callback configured.
+- [x] Production dashboard login works; Supabase RLS still blocks cross-guild access.
 - [ ] Restart bot on Render; automations and temp-voice reconciliation survive.
-- [ ] Confirm no secrets in GitHub or browser bundles.
+- [x] Confirm no secrets in GitHub or browser bundles.
+
+Phase 13 items are complete. The unchecked restart/persistence item above carries
+into Phase 14.
 
 ---
 

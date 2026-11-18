@@ -41,21 +41,24 @@ See `.env.example` for all variables. Never commit `.env` files or secrets.
 
 ## Deployment (Phase 13)
 
-The deployment configuration and runbook are ready; the live platform steps
-still require the GitHub, Supabase, Render, Vercel, and UptimeRobot accounts.
+Live since 2026-11-19:
 
-- **Database:** apply `supabase/migrations/0001`-`0003`, verify
-  `supabase/tests/rls_checks.sql`, configure Discord OAuth, and create the first
-  `dashboard_admins` row.
-- **Bot:** deploy `render.yaml` as a Render Blueprint. The service runs from
-  `bot/`, starts `python main.py`, and health-checks `/health`.
-- **Dashboard:** import the repo in Vercel with root directory `dashboard` and
-  set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
-  `NEXT_PUBLIC_APP_URL`.
-- **Monitoring:** add a 5-minute UptimeRobot HTTP monitor for
-  `https://<render-service>.onrender.com/health` and one for the dashboard.
-- **Verification:** run
-  `.\scripts\verify_deployment.ps1 -DashboardUrl <url> -BotHealthUrl <url>`.
+- **Dashboard:** <https://triumph-bot-bice.vercel.app>
+- **Bot health:** <https://triumph-bot.onrender.com/health>
+- **Database/auth:** Supabase production project; Discord OAuth login and RLS
+  isolation verified.
+- **Monitoring:** UptimeRobot reports the Render health and Vercel dashboard
+  monitors as up on 5-minute checks.
+- **Automatic deploys:** Vercel GitHub integration reports a successful
+  deployment; Render auto-deploy is enabled in `render.yaml`.
+
+The deployment script passes all checks:
+
+```powershell
+.\scripts\verify_deployment.ps1 `
+  -DashboardUrl "https://triumph-bot-bice.vercel.app" `
+  -BotHealthUrl "https://triumph-bot.onrender.com/health"
+```
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full runbook, environment
 matrix, OAuth setup, backup/export strategy, rollback steps, and troubleshooting.

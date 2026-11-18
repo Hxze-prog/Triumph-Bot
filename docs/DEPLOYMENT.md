@@ -9,9 +9,21 @@ Production topology:
 | Database + Auth | Supabase | PostgreSQL, RLS, Discord OAuth |
 | Uptime monitoring | UptimeRobot | HTTP monitor for Render `/health` |
 
-Phase 13 configuration is ready. The live deployment steps below require the
-GitHub repository, Supabase project, Render account, Vercel account, and
-UptimeRobot account.
+Phase 13 went live on 2026-11-19:
+
+| Live endpoint | URL | Status |
+| --- | --- | --- |
+| Dashboard | <https://triumph-bot-bice.vercel.app> | Live; GitHub auto-deploy successful |
+| Bot health | <https://triumph-bot.onrender.com/health> | `200`; `bot_ready=true`, `guilds=1` |
+| Monitoring | UptimeRobot | Both 5-minute monitors up |
+
+Discord OAuth, the production callback, Supabase connectivity, and anonymous RLS
+blocking were verified against these endpoints. Restart persistence and the full
+command smoke checks are tracked in Phase 14; backup/export execution remains an
+operational maintenance action.
+
+The procedures below remain the source of truth for rebuilds, key rotation, and
+recovery.
 
 > The local repository must be committed and pushed to
 > `https://github.com/Hxze-prog/Triumph-Bot.git` before either host can deploy.
@@ -228,9 +240,10 @@ a new deployment. Never put the Supabase service-role key in a public variable.
    - Monitoring interval: **5 minutes**
    - Timeout: 30 seconds
    - Alert contacts: your email/Discord/SMS destination
-3. If the plan supports keyword monitoring, require `bot_ready` in the response
-   to alert when the process is up but Discord is disconnected. Otherwise use
-   HTTP `200` and rely on Render logs for gateway failures.
+3. Use HTTP `200` as the primary check. If keyword monitoring is available, use
+   the exact fragment `"bot_ready":true` rather than the word `bot_ready`, so a
+   `false` value is not treated as healthy. Otherwise rely on Render logs for
+   gateway failures.
 4. Add a second HTTP monitor for the Vercel dashboard root URL, also at
    5-minute intervals.
 5. Trigger a test notification from UptimeRobot and confirm it arrives.
@@ -265,7 +278,10 @@ Then complete the manual checks:
 - [ ] UptimeRobot reports both monitors as up.
 
 Phase 13 is complete when the four platform tasks in `task.txt` are checked
-against the live services, not merely when the local configuration passes.
+against the live services, not merely when the local configuration passes. At
+the 2026-11-19 close, Render health and UptimeRobot, Vercel deploy/login, and
+Supabase RLS checks passed. Restart persistence and the remaining command smoke
+checks are carried into Phase 14; backup/export execution remains operational.
 
 ---
 
