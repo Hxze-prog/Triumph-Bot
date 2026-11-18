@@ -1,0 +1,678 @@
+export type BotCommand = {
+  name: string;
+  usage: string;
+  description: string;
+  aliases?: string[];
+  permission?: string;
+};
+
+export type CommandGroup = {
+  id: string;
+  title: string;
+  description: string;
+  icon: "grid" | "shield" | "welcome" | "hash" | "roles" | "mic" | "clock" | "list";
+  commands: BotCommand[];
+};
+
+export const commandGroups: CommandGroup[] = [
+  {
+    id: "general",
+    title: "General",
+    description: "Latency checks and everyday utilities.",
+    icon: "grid",
+    commands: [
+      {
+        name: "ping",
+        usage: "!ping",
+        description: "Check bot responsiveness and gateway latency.",
+        permission: "Everyone",
+      },
+      {
+        name: "serverinfo",
+        usage: "!serverinfo",
+        description: "Show owner, creation date, counts, boosts, and features.",
+        aliases: ["guildinfo"],
+        permission: "Everyone",
+      },
+      {
+        name: "userinfo",
+        usage: "!userinfo [@member]",
+        description: "Show account and membership details for a member.",
+        aliases: ["whois"],
+        permission: "Everyone",
+      },
+      {
+        name: "avatar",
+        usage: "!avatar [@member]",
+        description: "Show global and server avatars.",
+        aliases: ["av"],
+        permission: "Everyone",
+      },
+      {
+        name: "roleinfo",
+        usage: "!roleinfo <@role>",
+        description: "Show role color, position, permissions, and member count.",
+        permission: "Everyone",
+      },
+      {
+        name: "serverstats",
+        usage: "!serverstats",
+        description: "Show live member, channel, role, and boost statistics and store a snapshot.",
+        aliases: ["stats"],
+        permission: "Everyone",
+      },
+      {
+        name: "serverstats history",
+        usage: "!serverstats history [limit]",
+        description: "Show recent statistics snapshots (default 5).",
+        permission: "Everyone",
+      },
+    ],
+  },
+  {
+    id: "moderation",
+    title: "Moderation",
+    description: "Member enforcement backed by warnings and moderation history.",
+    icon: "shield",
+    commands: [
+      {
+        name: "ban",
+        usage: "!ban @member [reason]",
+        description: "Ban a member or user ID and record the action.",
+        permission: "Ban Members",
+      },
+      {
+        name: "unban",
+        usage: "!unban <user_id> [reason]",
+        description: "Unban a user by their Discord ID.",
+        permission: "Ban Members",
+      },
+      {
+        name: "kick",
+        usage: "!kick @member [reason]",
+        description: "Kick a member and record the action.",
+        permission: "Kick Members",
+      },
+      {
+        name: "timeout",
+        usage: "!timeout @member <duration> [reason]",
+        description: "Timeout a member. Examples: 10m, 1h30m, 2d.",
+        aliases: ["mute"],
+        permission: "Moderate Members",
+      },
+      {
+        name: "untimeout",
+        usage: "!untimeout @member [reason]",
+        description: "Remove an active timeout.",
+        aliases: ["unmute"],
+        permission: "Moderate Members",
+      },
+      {
+        name: "warn",
+        usage: "!warn @member [reason]",
+        description: "Warn a member and store the warning in Supabase.",
+        permission: "Moderator",
+      },
+      {
+        name: "warnings",
+        usage: "!warnings @member",
+        description: "List a member's active warnings.",
+        aliases: ["warns"],
+        permission: "Moderator",
+      },
+      {
+        name: "unwarn",
+        usage: "!unwarn @member <id|latest> [reason]",
+        description: "Deactivate a warning by id or the latest one.",
+        permission: "Moderator",
+      },
+      {
+        name: "clear",
+        usage: "!clear <amount> [@member]",
+        description: "Delete recent messages, optionally only from one member.",
+        aliases: ["purge"],
+        permission: "Manage Messages",
+      },
+      {
+        name: "lock",
+        usage: "!lock [#channel]",
+        description: "Prevent @everyone from sending messages in a channel.",
+        aliases: ["lockdown"],
+        permission: "Manage Channels",
+      },
+      {
+        name: "unlock",
+        usage: "!unlock [#channel]",
+        description: "Remove the @everyone send-messages override.",
+        permission: "Manage Channels",
+      },
+      {
+        name: "modlog",
+        usage: "!modlog [#channel|off]",
+        description: "Set or disable the moderation log channel.",
+        permission: "Manage Server",
+      },
+      {
+        name: "modlogs",
+        usage: "!modlogs [@member] [limit]",
+        description: "Show recent moderation history (default 10).",
+        aliases: ["history"],
+        permission: "Moderator",
+      },
+    ],
+  },
+  {
+    id: "welcome",
+    title: "Welcome & onboarding",
+    description: "Greetings, departures, generated banners, and autoroles.",
+    icon: "welcome",
+    commands: [
+      {
+        name: "welcome",
+        usage: "!welcome",
+        description: "Show the current welcome configuration.",
+        permission: "Manage Server",
+      },
+      {
+        name: "welcome channel",
+        usage: "!welcome channel <#channel|off>",
+        description: "Set the welcome destination channel.",
+        permission: "Manage Server",
+      },
+      {
+        name: "welcome message",
+        usage: "!welcome message <text>",
+        description: "Set the welcome text. Supports placeholders such as {user}, {server}, {member_count}, {member_number}.",
+        permission: "Manage Server",
+      },
+      {
+        name: "welcome template",
+        usage: "!welcome template <text>",
+        description: "Set the subtitle rendered onto the generated welcome banner.",
+        permission: "Manage Server",
+      },
+      {
+        name: "welcome toggle",
+        usage: "!welcome toggle",
+        description: "Enable or disable welcome messages.",
+        permission: "Manage Server",
+      },
+      {
+        name: "welcome embed",
+        usage: "!welcome embed <on|off>",
+        description: "Toggle embed styling for welcome messages.",
+        permission: "Manage Server",
+      },
+      {
+        name: "welcome banner",
+        usage: "!welcome banner <on|off>",
+        description: "Toggle the generated welcome banner image.",
+        permission: "Manage Server",
+      },
+      {
+        name: "welcome dm",
+        usage: "!welcome dm <on|off>",
+        description: "Toggle direct messages to new members.",
+        permission: "Manage Server",
+      },
+      {
+        name: "welcome test",
+        usage: "!welcome test [#channel|@member]",
+        description: "Preview the welcome output in a channel or DM.",
+        permission: "Manage Server",
+      },
+      {
+        name: "goodbye",
+        usage: "!goodbye",
+        description: "Show the current goodbye configuration.",
+        permission: "Manage Server",
+      },
+      {
+        name: "goodbye channel",
+        usage: "!goodbye channel <#channel|off>",
+        description: "Set the goodbye destination channel.",
+        permission: "Manage Server",
+      },
+      {
+        name: "goodbye message",
+        usage: "!goodbye message <text>",
+        description: "Set the goodbye text.",
+        permission: "Manage Server",
+      },
+      {
+        name: "goodbye toggle",
+        usage: "!goodbye toggle",
+        description: "Enable or disable goodbye messages.",
+        permission: "Manage Server",
+      },
+      {
+        name: "goodbye test",
+        usage: "!goodbye test [#channel|@member]",
+        description: "Preview the goodbye output in a channel or DM.",
+        permission: "Manage Server",
+      },
+      {
+        name: "autorole",
+        usage: "!autorole",
+        description: "Show roles applied automatically on join.",
+        permission: "Manage Server",
+      },
+      {
+        name: "autorole add",
+        usage: "!autorole add @role",
+        description: "Add a role to the autorole list.",
+        permission: "Manage Server",
+      },
+      {
+        name: "autorole remove",
+        usage: "!autorole remove @role",
+        description: "Remove a role from the autorole list.",
+        permission: "Manage Server",
+      },
+      {
+        name: "autorole list",
+        usage: "!autorole list",
+        description: "List configured autoroles.",
+        permission: "Manage Server",
+      },
+      {
+        name: "autorole clear",
+        usage: "!autorole clear",
+        description: "Remove all autoroles.",
+        permission: "Manage Server",
+      },
+    ],
+  },
+  {
+    id: "automod",
+    title: "AutoModeration",
+    description: "Spam, link, and invite protection with configurable timeouts.",
+    icon: "shield",
+    commands: [
+      {
+        name: "automod",
+        usage: "!automod",
+        description: "Show the current automod configuration.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automod spam",
+        usage: "!automod spam <on|off>",
+        description: "Enable or disable anti-spam.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automod links",
+        usage: "!automod links <on|off>",
+        description: "Enable or disable link filtering (allowlisted domains pass).",
+        permission: "Manage Server",
+      },
+      {
+        name: "automod invites",
+        usage: "!automod invites <on|off>",
+        description: "Enable or disable Discord invite blocking.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automod threshold",
+        usage: "!automod threshold <1-50>",
+        description: "Set how many messages trigger a spam action.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automod interval",
+        usage: "!automod interval <seconds|duration>",
+        description: "Set the spam counting window, for example 5s or 10.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automod timeout",
+        usage: "!automod timeout <duration|off>",
+        description: "Set the timeout applied to spammers, for example 10m.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automod status",
+        usage: "!automod status",
+        description: "Show the active automod rules.",
+        permission: "Manage Server",
+      },
+    ],
+  },
+  {
+    id: "logging",
+    title: "Logging",
+    description: "Per-event audit channels mirrored into the dashboard activity trail.",
+    icon: "hash",
+    commands: [
+      {
+        name: "logs",
+        usage: "!logs",
+        description: "Show the configured channel for every event type.",
+        aliases: ["logging"],
+        permission: "Everyone",
+      },
+      {
+        name: "logs status",
+        usage: "!logs status",
+        description: "Show the configured channel for every event type.",
+        permission: "Everyone",
+      },
+      {
+        name: "logs set",
+        usage: "!logs set <event> <#channel|off>",
+        description: "Set or disable the channel for an event. Events: join_leave, message_delete, message_edit, role_change, nickname_change, voice, moderation, channel_events.",
+        permission: "Manage Server",
+      },
+      {
+        name: "logs history",
+        usage: "!logs history [event] [limit]",
+        description: "Show recent stored activity logs (default 10).",
+        permission: "Moderator",
+      },
+      {
+        name: "logs test",
+        usage: "!logs test <event>",
+        description: "Send a test log to the configured channel for an event.",
+        permission: "Manage Server",
+      },
+    ],
+  },
+  {
+    id: "reaction-roles",
+    title: "Reaction roles",
+    description: "Map emoji reactions on a message to roles.",
+    icon: "roles",
+    commands: [
+      {
+        name: "reactionrole",
+        usage: "!reactionrole",
+        description: "Show reaction-role mappings in this server.",
+        aliases: ["rr"],
+        permission: "Manage Roles",
+      },
+      {
+        name: "reactionrole add",
+        usage: "!reactionrole add <msg_id|link> <emoji> @role",
+        description: "Map an emoji on a message to a role.",
+        permission: "Manage Roles",
+      },
+      {
+        name: "reactionrole remove",
+        usage: "!reactionrole remove <msg_id|link> <emoji>",
+        description: "Remove an emoji-to-role mapping.",
+        permission: "Manage Roles",
+      },
+      {
+        name: "reactionrole list",
+        usage: "!reactionrole list",
+        description: "List reaction-role mappings in this server.",
+        permission: "Manage Roles",
+      },
+    ],
+  },
+  {
+    id: "server-tools",
+    title: "Server tools",
+    description: "Messages, polls, embeds, and channel controls.",
+    icon: "list",
+    commands: [
+      {
+        name: "slowmode",
+        usage: "!slowmode <duration|off> [#channel]",
+        description: "Set channel slowmode, for example 10s.",
+        aliases: ["slow"],
+        permission: "Manage Channels",
+      },
+      {
+        name: "embed",
+        usage: '!embed #channel "Title" "Description" [color] [image_url]',
+        description: "Post a custom embed. Use quotes for multi-word values.",
+        aliases: ["sayembed"],
+        permission: "Manage Messages",
+      },
+      {
+        name: "poll",
+        usage: "!poll Question | Option 1 | Option 2",
+        description: "Create a poll with 2–10 options.",
+        permission: "Manage Messages",
+      },
+      {
+        name: "poll results",
+        usage: "!poll results <message_id>",
+        description: "Show live results for a poll message in the channel.",
+        permission: "Manage Messages",
+      },
+      {
+        name: "poll end",
+        usage: "!poll end <message_id>",
+        description: "Close a poll and post its final results.",
+        permission: "Manage Messages",
+      },
+    ],
+  },
+  {
+    id: "temp-voice",
+    title: "Temporary voice",
+    description: "Join-to-create rooms with owner controls and cleanup.",
+    icon: "mic",
+    commands: [
+      {
+        name: "tempvoice",
+        usage: "!tempvoice",
+        description: "Show temporary voice configuration and active rooms.",
+        aliases: ["tv"],
+        permission: "Everyone",
+      },
+      {
+        name: "tempvoice status",
+        usage: "!tempvoice status",
+        description: "Show the trigger channel, category, limit, and template.",
+        permission: "Everyone",
+      },
+      {
+        name: "tempvoice setup",
+        usage: "!tempvoice setup <voice_channel> [category]",
+        description: "Set the join-to-create trigger channel and optional category.",
+        permission: "Manage Channels",
+      },
+      {
+        name: "tempvoice trigger",
+        usage: "!tempvoice trigger <voice_channel>",
+        description: "Change the join-to-create trigger channel.",
+        permission: "Manage Channels",
+      },
+      {
+        name: "tempvoice category",
+        usage: "!tempvoice category <category|none>",
+        description: "Set the creation category or use none for top level.",
+        permission: "Manage Channels",
+      },
+      {
+        name: "tempvoice defaultlimit",
+        usage: "!tempvoice defaultlimit <0-99>",
+        description: "Set the default member limit for new rooms (0 = unlimited).",
+        permission: "Manage Channels",
+      },
+      {
+        name: "tempvoice template",
+        usage: "!tempvoice template <text>",
+        description: "Set the room name template. Supports {user}, {display_name}, {member_number}.",
+        permission: "Manage Channels",
+      },
+      {
+        name: "tempvoice name",
+        usage: "!tempvoice name <name>",
+        description: "Rename your temporary channel.",
+        permission: "Room owner",
+      },
+      {
+        name: "tempvoice size",
+        usage: "!tempvoice size <0-99>",
+        description: "Change your temporary channel member limit.",
+        permission: "Room owner",
+      },
+      {
+        name: "tempvoice lock",
+        usage: "!tempvoice lock",
+        description: "Prevent new members from joining your room.",
+        permission: "Room owner",
+      },
+      {
+        name: "tempvoice unlock",
+        usage: "!tempvoice unlock",
+        description: "Allow members to join your room again.",
+        permission: "Room owner",
+      },
+      {
+        name: "tempvoice kick",
+        usage: "!tempvoice kick @member",
+        description: "Disconnect a member from your temporary channel.",
+        permission: "Room owner",
+      },
+      {
+        name: "tempvoice claim",
+        usage: "!tempvoice claim",
+        description: "Claim ownership when the previous owner left.",
+        permission: "Room member",
+      },
+      {
+        name: "tempvoice delete",
+        usage: "!tempvoice delete",
+        description: "Delete your temporary channel.",
+        permission: "Room owner",
+      },
+    ],
+  },
+  {
+    id: "automations",
+    title: "Automations",
+    description: "Scheduled messages, reminders, stats, and event hooks.",
+    icon: "clock",
+    commands: [
+      {
+        name: "automation",
+        usage: "!automation",
+        description: "List automations for this server.",
+        aliases: ["automations", "auto"],
+        permission: "Manage Server",
+      },
+      {
+        name: "automation list",
+        usage: "!automation list",
+        description: "List automations with ids, types, and schedules.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation status",
+        usage: "!automation status",
+        description: "Show scheduler status, cron help, and automation types.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation announcement",
+        usage: '!automation announcement <name> "<cron>" #channel <message>',
+        description: "Scheduled announcement using a five-field UTC cron expression.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation message",
+        usage: '!automation message <name> "<cron>" #channel <message>',
+        description: "Recurring automated message (same syntax as announcement).",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation reminder",
+        usage: '!automation reminder <name> "<cron>" #channel <message>',
+        description: "Recurring reminder; mentions in the message are allowed.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation stats",
+        usage: '!automation stats <name> "<cron>" [#channel]',
+        description: "Schedule periodic server statistics snapshots.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation autorole",
+        usage: "!automation autorole <name> @role...",
+        description: "Assign roles automatically when members join.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation welcome",
+        usage: "!automation welcome <name> #channel <message>",
+        description: "Send an extra welcome message on join.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation goodbye",
+        usage: "!automation goodbye <name> #channel <message>",
+        description: "Send an extra goodbye message when a member leaves.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation response",
+        usage: '!automation response <name> "<trigger>" <response>',
+        description: "Reply automatically when a message contains a trigger phrase.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation toggle",
+        usage: "!automation toggle <id|name>",
+        description: "Enable or pause an automation.",
+        permission: "Manage Server",
+      },
+      {
+        name: "automation remove",
+        usage: "!automation remove <id|name>",
+        description: "Delete an automation.",
+        permission: "Manage Server",
+      },
+    ],
+  },
+  {
+    id: "bot-admin",
+    title: "Bot administration",
+    description: "Runtime diagnostics and extension management.",
+    icon: "grid",
+    commands: [
+      {
+        name: "botinfo",
+        usage: "!botinfo",
+        description: "Show bot version, uptime, latency, and guild counts.",
+        permission: "Bot owner or server admin",
+      },
+      {
+        name: "dbping",
+        usage: "!dbping",
+        description: "Check Supabase connectivity using the service role.",
+        permission: "Bot owner or server admin",
+      },
+      {
+        name: "extensions",
+        usage: "!extensions",
+        description: "List loaded extensions and cogs.",
+        aliases: ["cogs"],
+        permission: "Bot owner or server admin",
+      },
+      {
+        name: "prefix",
+        usage: "!prefix",
+        description: "Show the effective command prefix.",
+        permission: "Bot owner or server admin",
+      },
+      {
+        name: "reload",
+        usage: "!reload <extension>",
+        description: "Reload a cog, for example !reload general.",
+        permission: "Bot owner",
+      },
+    ],
+  },
+];
+
+export const commandCount = commandGroups.reduce(
+  (total, group) => total + group.commands.length,
+  0,
+);

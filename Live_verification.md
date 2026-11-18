@@ -1,0 +1,700 @@
+# Triumph Live Verification Checklist
+
+- **Repository:** `C:\Users\Jojit\Desktop\Triump Bot`
+- **Discord guild:** `1569030756515323974`
+- **Dashboard:** local `http://localhost:3000` (or production URL)
+- **Command inventory:** 93 commands across 10 modules
+- **Last updated:** 2026-11-19
+
+## How to use this file
+
+1. Tick every box only after observing the expected result.
+2. Mark each row: `[P]` pass, `[F]` fail, `[B]` blocked (reason required).
+3. Never run destructive tests against real members or production channels.
+4. For any setting command: capture the original value, test, then restore it.
+5. Keep screenshots or message links as evidence for failures and destructive tests.
+6. Do not paste tokens, service-role keys, or session secrets into this file.
+
+## Test placeholders
+
+Replace these with your test assets:
+
+| Placeholder | Meaning |
+| --- | --- |
+| `ALT` | Second Discord account (not an administrator) |
+| `ALT_ID` | Numeric user ID of `ALT` |
+| `ALT2` | Optional third account for temp-voice kick/claim tests |
+| `#test` | Private text channel used for command output |
+| `#mod-log` | Private text channel used for moderation logs |
+| `#join-log` | Private text channel used for join/leave logs |
+| `#msg-log` | Private text channel used for message logs |
+| `#voice-log` | Private text channel used for voice logs |
+| `#chan-log` | Private text channel used for channel events |
+| `@TestRole` | Role below the bot role, assignable, not managed |
+| `#v-trigger` | Voice channel used as the join-to-create trigger |
+| `#v-cat` | Category for temporary voice rooms |
+| `MESSAGE_ID` | ID of a message in `#test` used for reaction-role tests |
+| `POLL_ID` | ID of the poll message created during testing |
+
+> **Safety rules**
+>
+> - Keep the bot role above `@TestRole` and above ALT's highest role.
+> - Ban/kick/timeout tests need ALT to rejoin or be unbanned.
+> - Temp-voice tests need ALT to actually join the trigger voice channel.
+> - Automation tests use cron `* * * * *` (every minute) and must be removed afterwards.
+> - Restore every changed setting: welcome, goodbye, autorole, automod, logging, temp voice, modlog.
+
+---
+
+## 0. Pre-flight checks
+
+- [ ] `bot/.env` contains `DISCORD_TOKEN`, `DISCORD_GUILD_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- [ ] `dashboard/.env.local` contains `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`
+- [ ] Supabase migrations `0001`–`0003` applied and RLS policies active
+- [ ] `dashboard_admins` row exists for your Discord ID (`SETUP_DASHBOARD_ADMIN.txt`)
+- [ ] Bot has Administrator in the test guild (or all required permissions)
+- [ ] ALT, `@TestRole`, `#test`, `#mod-log`, and log channels exist
+- [ ] Server Members and Message Content intents enabled in the Discord developer portal
+
+---
+
+## 1. Startup and smoke checks
+
+- [ ] Start the bot:
+
+  ```powershell
+  cd C:\Users\Jojit\Desktop\Triump Bot\bot
+  .\.venv\Scripts\python.exe main.py
+  ```
+
+- [ ] Startup log shows `Triumph Bot starting`
+- [ ] Startup log shows all 10 extensions loaded
+- [ ] Startup log shows `Logged in as ...` and `Guilds: 1`
+- [ ] Startup log shows Supabase reachable
+- [ ] Health endpoint responds (replace `PORT` with `bot/.env` `PORT`, default `8080`):
+
+  ```powershell
+  Invoke-RestMethod http://localhost:8080/health
+  ```
+
+- [ ] Command inventory check passes:
+
+  ```powershell
+  cd C:\Users\Jojit\Desktop\Triump Bot
+  .\bot\.venv\Scripts\python.exe bot\scripts\verify_command_inventory.py
+  ```
+
+  Expected: `PASS: bot and dashboard command inventories match`
+
+- [ ] Bot responds in Discord to `!ping`
+- [ ] Start dashboard:
+
+  ```powershell
+  cd C:\Users\Jojit\Desktop\Triump Bot\dashboard
+  npm run dev
+  ```
+
+- [ ] Dashboard opens at `http://localhost:3000`
+
+---
+
+## 2. Registration audit: prove all 93 commands exist
+
+The dashboard and bot both define exactly 93 commands.
+
+| Module | Count |
+| --- | ---: |
+| automations | 13 |
+| automod | 8 |
+| core_admin | 5 |
+| general | 1 |
+| logging | 5 |
+| moderation | 13 |
+| reaction_roles | 4 |
+| server | 11 |
+| temp_voice | 14 |
+| welcome | 19 |
+| **Total** | **93** |
+
+- [ ] `!help`
+- [ ] `!help automation`
+- [ ] `!help automod`
+- [ ] `!help logs`
+- [ ] `!help moderation`
+- [ ] `!help reactionrole`
+- [ ] `!help poll`
+- [ ] `!help serverstats`
+- [ ] `!help tempvoice`
+- [ ] `!help welcome`
+- [ ] `!help goodbye`
+- [ ] `!help autorole`
+- [ ] `!extensions` shows all 10 cogs
+- [ ] Command tree count matches 93 (the dashboard `/command` page also shows 93)
+
+> The 93 count includes group parent commands such as `!automation` and `!welcome`.
+> Subcommands appear under their group in `!help <group>`. Aliases do not add to the count.
+
+---
+
+## 3. Command matrix: all 93 commands
+
+Run these in `#test` unless noted. For setting changes, restore the original value.
+
+### 3.1 General (1)
+
+- [ ] **ping**
+  - Run: `!ping`
+  - Expect: latency response; no error.
+  - Cleanup: none.
+
+### 3.2 Moderation (13)
+
+- [ ] **ban**
+  - Run: `!ban @ALT live-ban-test`
+  - Expect: confirmation embed; ALT receives DM attempt; activity/mod log entry.
+  - Cleanup: `!unban ALT_ID live-unban-test`
+- [ ] **unban**
+  - Run: `!unban ALT_ID live-unban-test`
+  - Expect: unban confirmation; ban removed.
+  - Cleanup: none (ALT stays in server).
+- [ ] **kick**
+  - Run: `!kick @ALT live-kick-test`
+  - Expect: kick confirmation; ALT removed from server.
+  - Cleanup: ALT rejoins.
+- [ ] **timeout**
+  - Run: `!timeout @ALT 1m live-timeout-test`
+  - Expect: confirmation; ALT is timed out for 1 minute.
+  - Cleanup: `!untimeout @ALT live-cleanup`
+- [ ] **untimeout**
+  - Run: `!untimeout @ALT live-cleanup`
+  - Expect: timeout removed confirmation.
+  - Cleanup: none.
+- [ ] **warn**
+  - Run: `!warn @ALT live-warning-test`
+  - Expect: warning saved; ALT DM attempted; warning count in response.
+  - Cleanup: `!unwarn @ALT latest live-cleanup`
+- [ ] **warnings**
+  - Run: `!warnings @ALT`
+  - Expect: active warning list including the test warning.
+  - Cleanup: none.
+- [ ] **unwarn**
+  - Run: `!unwarn @ALT latest live-cleanup`
+  - Expect: warning deactivated; no longer listed as active.
+  - Cleanup: none.
+- [ ] **clear**
+  - Run: `!clear 3`
+  - Expect: deletes up to 3 recent messages, skips pinned messages.
+  - Cleanup: none.
+- [ ] **lock**
+  - Run: `!lock #test`
+  - Expect: `@everyone` send messages denied; ALT cannot post.
+  - Cleanup: `!unlock #test`
+- [ ] **unlock**
+  - Run: `!unlock #test`
+  - Expect: `@everyone` send-messages override removed; ALT can post.
+  - Cleanup: none.
+- [ ] **modlog**
+  - Run: `!modlog #mod-log`
+  - Expect: moderation log channel saved.
+  - Cleanup: `!modlog off` (or restore original channel).
+- [ ] **modlogs**
+  - Run: `!modlogs @ALT 10`
+  - Expect: moderation history for ALT (ban/kick/timeout/warn entries).
+  - Cleanup: none.
+
+### 3.3 Welcome and onboarding (19)
+
+- [ ] **welcome**
+  - Run: `!welcome`
+  - Expect: welcome configuration embed/status.
+  - Cleanup: none.
+- [ ] **welcome channel**
+  - Run: `!welcome channel #test`
+  - Expect: welcome channel saved.
+  - Cleanup: `!welcome channel <original channel or off>`
+- [ ] **welcome message**
+  - Run: `!welcome message Welcome {user} to {server}! Member count: {member_count}`
+  - Expect: message saved.
+  - Cleanup: `!welcome message <original text>`
+- [ ] **welcome template**
+  - Run: `!welcome template Member #{member_number}`
+  - Expect: banner subtitle saved.
+  - Cleanup: `!welcome template <original text>`
+- [ ] **welcome toggle**
+  - Run: `!welcome toggle`
+  - Expect: enabled/disabled state changes and is reported.
+  - Cleanup: toggle back to original state.
+- [ ] **welcome embed**
+  - Run: `!welcome embed on`
+  - Expect: embed mode enabled.
+  - Cleanup: `!welcome embed <original on/off>`
+- [ ] **welcome banner**
+  - Run: `!welcome banner on`
+  - Expect: banner mode enabled.
+  - Cleanup: `!welcome banner <original on/off>`
+- [ ] **welcome dm**
+  - Run: `!welcome dm on`
+  - Expect: DM mode enabled.
+  - Cleanup: `!welcome dm <original on/off>`
+- [ ] **welcome test**
+  - Run: `!welcome test #test`
+  - Expect: preview welcome message/banner/embed in `#test`.
+  - Cleanup: delete preview message.
+- [ ] **goodbye**
+  - Run: `!goodbye`
+  - Expect: goodbye configuration embed/status.
+  - Cleanup: none.
+- [ ] **goodbye channel**
+  - Run: `!goodbye channel #test`
+  - Expect: goodbye channel saved.
+  - Cleanup: `!goodbye channel <original channel or off>`
+- [ ] **goodbye message**
+  - Run: `!goodbye message Goodbye {user}.`
+  - Expect: message saved.
+  - Cleanup: `!goodbye message <original text>`
+- [ ] **goodbye toggle**
+  - Run: `!goodbye toggle`
+  - Expect: enabled/disabled state changes and is reported.
+  - Cleanup: toggle back to original state.
+- [ ] **goodbye test**
+  - Run: `!goodbye test #test`
+  - Expect: preview goodbye message in `#test`.
+  - Cleanup: delete preview message.
+- [ ] **autorole**
+  - Run: `!autorole`
+  - Expect: current autorole list/status.
+  - Cleanup: none.
+- [ ] **autorole add**
+  - Run: `!autorole add @TestRole`
+  - Expect: role added to autorole list.
+  - Cleanup: `!autorole remove @TestRole`
+- [ ] **autorole remove**
+  - Run: `!autorole remove @TestRole`
+  - Expect: role removed from autorole list.
+  - Cleanup: restore original list if needed.
+- [ ] **autorole list**
+  - Run: `!autorole list`
+  - Expect: configured autoroles listed.
+  - Cleanup: none.
+- [ ] **autorole clear**
+  - Run: `!autorole clear`
+  - Expect: all autoroles removed (after recording the original list).
+  - Cleanup: re-add original roles.
+
+### 3.4 AutoModeration (8)
+
+- [ ] **automod**
+  - Run: `!automod`
+  - Expect: automod settings embed/status.
+  - Cleanup: none.
+- [ ] **automod spam**
+  - Run: `!automod spam on`
+  - Expect: anti-spam enabled message.
+  - Cleanup: `!automod spam <original on/off>`
+- [ ] **automod links**
+  - Run: `!automod links on`
+  - Expect: anti-link enabled message.
+  - Cleanup: `!automod links <original on/off>`
+- [ ] **automod invites**
+  - Run: `!automod invites on`
+  - Expect: anti-invite enabled message.
+  - Cleanup: `!automod invites <original on/off>`
+- [ ] **automod threshold**
+  - Run: `!automod threshold 3`
+  - Expect: threshold set to 3.
+  - Cleanup: `!automod threshold <original value, default 5>`
+- [ ] **automod interval**
+  - Run: `!automod interval 5s`
+  - Expect: interval set to 5 seconds.
+  - Cleanup: `!automod interval <original seconds, default 5>`
+- [ ] **automod timeout**
+  - Run: `!automod timeout 1m`
+  - Expect: spam timeout set to 1 minute.
+  - Cleanup: `!automod timeout <original duration or off>`
+- [ ] **automod status**
+  - Run: `!automod status`
+  - Expect: current settings embed including threshold, interval, and timeout.
+  - Cleanup: none.
+
+### 3.5 Logging (5)
+
+- [ ] **logs**
+  - Run: `!logs`
+  - Expect: logging configuration/status.
+  - Cleanup: none.
+- [ ] **logs status**
+  - Run: `!logs status`
+  - Expect: per-event channel configuration embed.
+  - Cleanup: none.
+- [ ] **logs set**
+  - Run: `!logs set join_leave #join-log`
+  - Expect: join/leave channel saved.
+  - Cleanup: `!logs set join_leave <original channel or off>`
+- [ ] **logs history**
+  - Run: `!logs history join_leave 5`
+  - Expect: recent stored activity log entries.
+  - Cleanup: none.
+- [ ] **logs test**
+  - Run: `!logs test join_leave`
+  - Expect: test log embed posted to the configured channel.
+  - Cleanup: delete test log message.
+
+### 3.6 Reaction roles (4)
+
+- [ ] **reactionrole**
+  - Run: `!reactionrole`
+  - Expect: reaction-role mappings listed (or empty-state message).
+  - Cleanup: none.
+- [ ] **reactionrole add**
+  - Run: `!reactionrole add MESSAGE_ID :white_check_mark: @TestRole`
+  - Expect: mapping saved, bot reacts to the message, confirmation embed.
+  - Cleanup: `!reactionrole remove MESSAGE_ID :white_check_mark:`
+- [ ] **reactionrole remove**
+  - Run: `!reactionrole remove MESSAGE_ID :white_check_mark:`
+  - Expect: mapping and bot reaction removed.
+  - Cleanup: none.
+- [ ] **reactionrole list**
+  - Run: `!reactionrole list`
+  - Expect: mapping list reflects added/removed state.
+  - Cleanup: none.
+
+### 3.7 Server tools (11)
+
+- [ ] **userinfo**
+  - Run: `!userinfo @ALT`
+  - Expect: account ID, created date, joined date, roles.
+  - Cleanup: none.
+- [ ] **serverinfo**
+  - Run: `!serverinfo`
+  - Expect: owner, creation date, member/channel/role/boost counts.
+  - Cleanup: none.
+- [ ] **avatar**
+  - Run: `!avatar @ALT`
+  - Expect: global and server avatars (or clear message).
+  - Cleanup: none.
+- [ ] **roleinfo**
+  - Run: `!roleinfo @TestRole`
+  - Expect: role color, position, permissions, member count.
+  - Cleanup: none.
+- [ ] **slowmode**
+  - Run: `!slowmode 5s #test`
+  - Expect: slowmode set to 5 seconds.
+  - Cleanup: `!slowmode off #test`
+- [ ] **embed**
+  - Run: `!embed #test "Triumph live check" "Embed verification message." #D4AF37`
+  - Expect: custom embed posted with title, description, and color.
+  - Cleanup: delete embed.
+- [ ] **poll**
+  - Run: `!poll Live check? | Yes | No`
+  - Expect: poll embed with reaction options; record `POLL_ID` from the message.
+  - Cleanup: `!poll end POLL_ID`
+- [ ] **poll results**
+  - Run: `!poll results POLL_ID`
+  - Expect: live vote counts for the poll in the same channel.
+  - Cleanup: none.
+- [ ] **poll end**
+  - Run: `!poll end POLL_ID`
+  - Expect: poll closed and final results posted.
+  - Cleanup: delete poll/results if desired.
+- [ ] **serverstats**
+  - Run: `!serverstats`
+  - Expect: live statistics embed and a new snapshot saved.
+  - Cleanup: none.
+- [ ] **serverstats history**
+  - Run: `!serverstats history 3`
+  - Expect: recent saved snapshots listed.
+  - Cleanup: none.
+
+### 3.8 Temporary voice (14)
+
+- [ ] **tempvoice**
+  - Run: `!tempvoice`
+  - Expect: temp-voice configuration/status.
+  - Cleanup: none.
+- [ ] **tempvoice status**
+  - Run: `!tempvoice status`
+  - Expect: trigger channel, category, default limit, and name template.
+  - Cleanup: none.
+- [ ] **tempvoice setup**
+  - Run: `!tempvoice setup #v-trigger #v-cat`
+  - Expect: trigger and category saved.
+  - Cleanup: restore original setup.
+- [ ] **tempvoice trigger**
+  - Run: `!tempvoice trigger #v-trigger`
+  - Expect: trigger channel saved.
+  - Cleanup: restore original trigger.
+- [ ] **tempvoice category**
+  - Run: `!tempvoice category #v-cat`
+  - Expect: creation category saved.
+  - Cleanup: `!tempvoice category <original category or none>`
+- [ ] **tempvoice defaultlimit**
+  - Run: `!tempvoice defaultlimit 2`
+  - Expect: default limit saved.
+  - Cleanup: restore original limit.
+- [ ] **tempvoice template**
+  - Run: `!tempvoice template {display_name}'s room`
+  - Expect: name template saved.
+  - Cleanup: restore original template.
+- [ ] **tempvoice name**
+  - Run: (ALT joins `#v-trigger`; ALT runs) `!tempvoice name Live Room`
+  - Expect: ALT's temporary channel renamed.
+  - Cleanup: `!tempvoice delete`
+- [ ] **tempvoice size**
+  - Run: `!tempvoice size 1`
+  - Expect: room user limit changed to 1.
+  - Cleanup: `!tempvoice size 0`
+- [ ] **tempvoice lock**
+  - Run: `!tempvoice lock`
+  - Expect: new members cannot join the room.
+  - Cleanup: `!tempvoice unlock`
+- [ ] **tempvoice unlock**
+  - Run: `!tempvoice unlock`
+  - Expect: members can join again.
+  - Cleanup: none.
+- [ ] **tempvoice kick**
+  - Run: `!tempvoice kick @ALT2`
+  - Expect: ALT2 disconnected from ALT's temporary channel.
+  - Cleanup: ALT2 may rejoin to continue tests.
+- [ ] **tempvoice claim**
+  - Run: ALT creates a room, ALT leaves voice, ALT2 joins, ALT2 runs `!tempvoice claim`
+  - Expect: ALT2 becomes owner and receives owner permissions.
+  - Cleanup: `!tempvoice delete`
+- [ ] **tempvoice delete**
+  - Run: `!tempvoice delete` (as room owner)
+  - Expect: temporary channel deleted and database record marked deleted.
+  - Cleanup: none.
+
+### 3.9 Automations (13)
+
+- [ ] **automation**
+  - Run: `!automation`
+  - Expect: automations listed for the server.
+  - Cleanup: none.
+- [ ] **automation list**
+  - Run: `!automation list`
+  - Expect: ids, names, types, and schedules listed.
+  - Cleanup: none.
+- [ ] **automation status**
+  - Run: `!automation status`
+  - Expect: scheduler status, cron help, and supported types.
+  - Cleanup: none.
+- [ ] **automation announcement**
+  - Run: `!automation announcement live-announce "* * * * *" #test "Announcement tick"`
+  - Expect: automation created; message posts within 90 seconds; `last_run` updates.
+  - Cleanup: `!automation remove live-announce`
+- [ ] **automation message**
+  - Run: `!automation message live-message "* * * * *" #test "Message tick"`
+  - Expect: recurring message posts within 90 seconds.
+  - Cleanup: `!automation remove live-message`
+- [ ] **automation reminder**
+  - Run: `!automation reminder live-reminder "* * * * *" #test "Reminder tick"`
+  - Expect: reminder posts within 90 seconds.
+  - Cleanup: `!automation remove live-reminder`
+- [ ] **automation stats**
+  - Run: `!automation stats live-stats "* * * * *" #test`
+  - Expect: stats snapshot/post within 90 seconds and a `server_stats` row.
+  - Cleanup: `!automation remove live-stats`
+- [ ] **automation autorole**
+  - Run: `!automation autorole live-autorole @TestRole`
+  - Expect: automation created; ALT joins and receives `@TestRole`.
+  - Cleanup: `!automation remove live-autorole`
+- [ ] **automation welcome**
+  - Run: `!automation welcome live-welcome #test "Welcome {user}"`
+  - Expect: extra welcome message when ALT joins.
+  - Cleanup: `!automation remove live-welcome`
+- [ ] **automation goodbye**
+  - Run: `!automation goodbye live-goodbye #test "Goodbye {user}"`
+  - Expect: extra goodbye message when ALT leaves.
+  - Cleanup: `!automation remove live-goodbye`
+- [ ] **automation response**
+  - Run: `!automation response live-response "live check" "Response works"`
+  - Expect: bot replies when a non-bot message contains the trigger.
+  - Cleanup: `!automation remove live-response`
+- [ ] **automation remove**
+  - Run: `!automation remove live-announce`
+  - Expect: automation deleted and job removed.
+  - Cleanup: remove all other `live-*` automations.
+- [ ] **automation toggle**
+  - Run: `!automation toggle live-message`
+  - Expect: enabled/paused state changes; job added or removed.
+  - Cleanup: toggle back or remove.
+
+### 3.10 Bot administration (5)
+
+- [ ] **botinfo**
+  - Run: `!botinfo`
+  - Expect: version, uptime, latency, and guild count.
+  - Cleanup: none.
+- [ ] **dbping**
+  - Run: `!dbping`
+  - Expect: Supabase connectivity success.
+  - Cleanup: none.
+- [ ] **extensions**
+  - Run: `!extensions`
+  - Expect: all 10 loaded extensions/cogs listed.
+  - Cleanup: none.
+- [ ] **prefix**
+  - Run: `!prefix`
+  - Expect: effective prefix shown (default `!`).
+  - Cleanup: none.
+- [ ] **reload**
+  - Run: `!reload cogs.general` (bot owner only)
+  - Expect: extension reloaded confirmation; commands still work.
+  - Cleanup: none.
+
+---
+
+## 4. End-to-end live scenarios
+
+### 4.1 Phase 5: moderation and automod
+
+- [ ] Ban then unban ALT completes without errors; activity/mod log entries exist.
+- [ ] Kick ALT, ALT rejoins; log entry exists.
+- [ ] Timeout ALT, attempt to post, then untimeout; posting works again.
+- [ ] Warn ALT, view warnings, unwarn latest; active count drops.
+- [ ] Clear 3 test messages; pinned messages are skipped.
+- [ ] Lock `#test`, verify ALT cannot send, unlock; ALT can send.
+- [ ] Set modlog to `#mod-log`, run a moderation action, confirm mirror log.
+- [ ] Run `!modlogs @ALT` and confirm newest actions appear.
+- [ ] Automod real trigger: threshold 3, interval 5s, timeout 1m, spam on; ALT sends 3–4 messages quickly; messages are purged and ALT is timed out. Cleanup: untimeout ALT, restore threshold/interval/timeout, spam off if originally off.
+- [ ] Automod links on; ALT posts `https://example.com` in `#test`; message deleted and logged.
+- [ ] Automod invites on; ALT posts `discord.gg/test`; message deleted and logged.
+- [ ] Cleanup: remove ALT timeout and restore automod settings.
+
+### 4.2 Phase 6: server management
+
+- [ ] Info commands return correct data for ALT, guild, avatar, and role.
+- [ ] Slowmode 5s blocks rapid posts in `#test`; off removes the restriction.
+- [ ] Embed posts with correct title/description/color; delete after check.
+- [ ] Poll creates 2–10 options; `!poll results` updates; `!poll end` closes.
+- [ ] Reaction role add: ALT reacts, gains `@TestRole`; unreact, role removed.
+- [ ] Server stats creates a snapshot; history shows it.
+
+### 4.3 Phase 7: temporary voice
+
+- [ ] `!tempvoice setup #v-trigger #v-cat` saves trigger/category.
+- [ ] ALT joins `#v-trigger`; bot creates a temporary channel and moves ALT.
+- [ ] ALT renames, changes size, locks, unlocks, kicks ALT2, and deletes the room.
+- [ ] ALT leaves voice while ALT2 remains; ALT2 claims ownership.
+- [ ] Both humans leave; room is deleted automatically and DB record updated.
+- [ ] Restart bot while a temp room exists; reconciliation keeps/deletes as designed.
+
+### 4.4 Phase 8: logging events
+
+Configure each channel with `!logs set`, then trigger the event:
+
+- [ ] `join_leave`: `!logs set join_leave #join-log`; ALT joins/leaves.
+- [ ] `message_delete`: `!logs set message_delete #msg-log`; delete a message.
+- [ ] `message_edit`: `!logs set message_edit #msg-log`; edit a message.
+- [ ] `role_change`: `!logs set role_change #join-log`; add/remove `@TestRole`.
+- [ ] `nickname_change`: `!logs set nickname_change #join-log`; change ALT nickname.
+- [ ] `voice`: `!logs set voice #voice-log`; ALT joins/leaves/moves voice.
+- [ ] `moderation`: `!logs set moderation #mod-log`; ban/unban or warn ALT.
+- [ ] `channel_events`: `!logs set channel_events #chan-log`; create/delete a channel.
+- [ ] `!logs test <event>` posts a test embed for every event above.
+- [ ] `!logs history` shows the generated activity entries.
+- [ ] Cleanup: remove test messages/channels and restore original event channels.
+
+### 4.5 Phase 9: automations
+
+- [ ] Create every automation type with `"* * * * *"` and confirm execution.
+- [ ] Verify `last_run_at` updates in `!automation list` and the dashboard.
+- [ ] `!automation toggle` pauses/resumes a job.
+- [ ] `!automation remove` deletes the job and stops future runs.
+- [ ] Keyword response replies only to the configured trigger phrase.
+- [ ] Join/leave hooks and autorole fire for ALT.
+- [ ] Restart bot; enabled jobs restored, paused/deleted jobs stay gone.
+- [ ] Cleanup: remove all `live-*` automations and restore settings.
+
+### 4.6 Phase 10: public site and dashboard UI
+
+- [ ] `/` returns 200 with branding and no console errors.
+- [ ] `/command` returns 200; shows 93 commands and 10 modules.
+- [ ] `/command` search filters by name, usage, and alias.
+- [ ] `/command` category buttons filter correctly; empty search state appears.
+- [ ] Header/footer Commands links navigate to `/command`.
+- [ ] `/terms` and `/privacy` return 200.
+- [ ] `/login` returns 200 and shows the Discord sign-in action.
+- [ ] Mobile layout at 375px: nav/header/footer usable, no horizontal overflow.
+- [ ] Dashboard overview, statistics, and activity render real data.
+- [ ] Settings and management index pages link to all subpages.
+
+### 4.7 Phase 11: authentication
+
+- [ ] Discord OAuth completes and returns to `/dashboard`.
+- [ ] Unauthorized Discord account sees access denied (no admin row).
+- [ ] `/dashboard` redirects to `/login` when signed out.
+- [ ] Direct visits to `/dashboard/settings` and `/dashboard/management` are protected.
+- [ ] Sign out clears the session and protected routes redirect again.
+- [ ] No secrets appear in browser network responses.
+
+### 4.8 Phase 12: dashboard writes and sync
+
+- [ ] Welcome page: save channel/message/template/toggles; reload persists values.
+- [ ] Moderation page: save automod settings; reload persists; bot `!automod` reflects them within 30s.
+- [ ] Logging page: save per-event channels; bot `!logs status` reflects them within 30s.
+- [ ] Temp voice page: save setup/template/limit; bot `!tempvoice status` reflects them within 30s.
+- [ ] Automations page: toggle an automation; bot `!automation list` reflects state within 30s.
+- [ ] Pause an automation from the dashboard; job stops running.
+- [ ] Reaction roles and warnings pages show bot-created data read-only.
+- [ ] Statistics and activity pages show new snapshots/actions after bot activity.
+- [ ] Sign out and back in; saved values remain.
+
+### 4.9 Phases 13–15: deployment (when production is ready)
+
+Runbook: [docs/DEPLOYMENT.md](DEPLOYMENT.md). Automated check: `scripts/verify_deployment.ps1`.
+
+- [ ] Render deploy succeeds; start command `python main.py`; logs show all cogs loaded.
+- [ ] Render `/health` returns 200; UptimeRobot monitors it every 5 minutes.
+- [ ] Vercel deploy succeeds; production URL, env vars, and auth callback configured.
+- [ ] Production dashboard login works; Supabase RLS still blocks cross-guild access.
+- [ ] Restart bot on Render; automations and temp-voice reconciliation survive.
+- [ ] Confirm no secrets in GitHub or browser bundles.
+
+---
+
+## 5. Restart and persistence checks
+
+- [ ] Settings saved from Discord survive a bot restart.
+- [ ] Settings saved from the dashboard survive a bot restart.
+- [ ] Enabled automations are restored after restart; paused/deleted ones are not.
+- [ ] Temp voice records are reconciled after restart.
+- [ ] Bot reconnects automatically after a network interruption.
+- [ ] Dashboard session survives normal navigation but expires correctly on sign-out.
+
+---
+
+## 6. Troubleshooting notes
+
+- **Command not found:** check prefix with `!prefix`, then `!extensions`, then `!reload <cog>`.
+- **Missing permissions:** compare bot role position with ALT/`@TestRole`; confirm channel overrides.
+- **Database errors:** run `!dbping`; confirm the Supabase project is reachable and the service key is valid.
+- **Reaction roles not applying:** bot role must be above `@TestRole`; mapping must exist for that message.
+- **Temp voice not creating:** trigger channel saved, bot has Manage Channels/Move Members.
+- **Automations not firing:** cron is UTC and five fields; check `!automation status` and bot logs.
+- **Dashboard not saving:** confirm `dashboard_admins` row, RLS policies, and Supabase auth session.
+
+---
+
+## 7. Sign-off
+
+- **Operator:** ____________________
+- **Date:** ____________________
+- **Bot version/commit:** ____________________
+- **Guild ID:** ____________________
+- **Commands checked:** ____ / 93
+- **PASS:** ____
+- **FAIL:** ____
+- **BLOCKED:** ____
+
+### Failures and blockers
+
+Record command, expected result, observed result, and evidence link:
+
+1. __________________________________________________________________
+2. __________________________________________________________________
+3. __________________________________________________________________
+
+- [ ] Remediation completed and re-tested: yes / no
+
+**Notes:** ______________________________________________________________

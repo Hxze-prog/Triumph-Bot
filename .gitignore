@@ -1,0 +1,60 @@
+# Secrets
+.env
+.env.*
+!.env.example
+bot/.env
+bot/.env.*
+!bot/.env.example
+dashboard/.env
+dashboard/.env.*
+!dashboard/.env.example
+dashboard/.env.local
+dashboard/.env.local.*
+session.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+bot/.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Node / Next.js
+node_modules/
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+dashboard/.turbo/
+dashboard/.vercel/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs / runtime
+logs/
+bot/logs/
+*.log
+
+# Coverage
+.coverage
+htmlcov/
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/

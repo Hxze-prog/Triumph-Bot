@@ -1,0 +1,56 @@
+TRIUMPH DASHBOARD - ADMIN ACCESS SETUP
+Discord user ID: 1111664537846951946
+Guild ID:        1569030756515323974
+
+HOW TO USE
+1. Open Supabase Dashboard -> SQL Editor.
+2. Paste STEP 1 into the editor and click Run.
+3. Paste STEP 2 and click Run to verify the row exists.
+4. Reload http://localhost:3000/dashboard (no restart needed).
+
+Prerequisite: you must have signed in once at http://localhost:3000/login
+with Discord, even if it showed "not registered". That creates your auth user.
+
+STEP 1 - GRANT ADMIN ACCESS
+------------------------------------------------------------
+insert into public.dashboard_admins (user_id, discord_id, guild_id, role)
+select u.id, 1111664537846951946, 1569030756515323974, 'admin'
+from auth.users u
+join auth.identities i on i.user_id = u.id
+where i.provider = 'discord'
+  and (i.identity_data->>'provider_id') = '1111664537846951946'
+on conflict (user_id, guild_id) do update
+set discord_id = excluded.discord_id,
+    role = excluded.role;
+
+STEP 2 - VERIFY
+------------------------------------------------------------
+select user_id, discord_id, guild_id, role, created_at
+from public.dashboard_admins
+where guild_id = 1569030756515323974;
+
+Expected: exactly one row with discord_id 1111664537846951946 and role admin.
+
+TROUBLESHOOTING
+- STEP 1 says "INSERT 0 1" (or "UPDATE 1"): good.
+- STEP 1 says "INSERT 0 0": no matching Discord identity. Sign in at
+  /login again, then rerun STEP 1.
+- Error "violates foreign key constraint ... guilds": the guild row is
+  missing. Run this first, then repeat STEP 1:
+    insert into public.guilds (id, name)
+    values (1569030756515323974, 'Triumph Server')
+    on conflict (id) do nothing;
+
+OPTIONAL - REQUIRE A DISCORD ROLE FOR DASHBOARD ACCESS
+------------------------------------------------------------
+Only run this if you want access gated by a role you already have.
+Replace ROLE_ID with the Discord role ID (number, no quotes).
+
+update public.guild_settings
+set dashboard_admin_role_ids = array[ROLE_ID]::bigint[]
+where guild_id = 1569030756515323974;
+
+To undo role gating later:
+update public.guild_settings
+set dashboard_admin_role_ids = '{}'
+where guild_id = 1569030756515323974;

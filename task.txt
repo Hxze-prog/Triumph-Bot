@@ -1,0 +1,361 @@
+TRIUMPH BOT - PROGRESS
+CURRENT PHASE: 11 - Web Dashboard Authentication
+NEXT PHASE: 12 - Dashboard Backend & Integration
+LAST UPDATED: 2026-11-19
+LEGEND: [ ] pending  [~] in progress  [x] done  [!] blocked  [-] deferred
+
+PHASE 1 - PROJECT PLANNING & FOUNDATION
+[x] Monorepo scaffold (bot/, dashboard/, supabase/, docs/)
+[x] Git init (local repo initialized)
+[x] Configure GitHub remote (https://github.com/Hxze-prog/Triumph-Bot.git)
+[x] Python venv + consolidated root/bot requirements.txt + bot/runtime.txt
+[x] .env.example, .gitignore, README.md, render.yaml
+[x] Bot config + env loader (bot/config.py)
+[x] discord.py client + intents + modular cog loader (bot/core/, bot/main.py, bot/cogs/general.py)
+[x] Supabase connectivity check (verified live: service_role reachable, "schema not applied yet"; bot/.env present)
+[x] Bot logs in to Discord (verified live: Triumph Bot#6836 id=1572684593285439640, bot_ready=true, Guilds:1)
+[x] !ping command works (verified in guild 1569030756515323974: `Pong! WS: 234ms | RTT: 408ms`; intents enabled in Developer Portal)
+[x] Flask /health endpoint returns 200 (verified locally)
+PHASE 1: DONE (2026-11-19)
+
+PHASE 2 - DATABASE DEVELOPMENT
+[x] Design and write migrations for all tables (guilds, guild_settings, members, warnings, moderation_logs, temp_voice_channels, reaction_roles, automations, polls, activity_logs, server_stats, dashboard_admins)
+[x] Configure primary and foreign keys + on delete cascade
+[x] Indexes and updated_at triggers
+[x] next_member_number(guild_id) RPC
+[x] Configure Row Level Security (RLS) on all tables
+[x] Create dashboard access policies (auth.uid() -> dashboard_admins -> guild rows)
+[x] Configure bot database access (service_role, server-side only)
+[x] Configure dashboard database access (anon key + JWT, RLS-enforced)
+[x] Apply migrations 0001 + 0002 in Supabase SQL Editor (user-applied; schema now exists - service-role probe moved from PGRST205 to 42501)
+[x] Apply 0003 grants (`supabase/migrations/0003_grants.sql`) in Supabase SQL Editor (verified: all 12 tables readable via service role, 0 permission errors)
+[x] Service-role smoke test (verified: guilds upsert/select, guild_settings upsert/update, `next_member_number` RPC -> 1, cleanup OK)
+[x] Authenticated RLS isolation test (verified with temp auth user: sees only allowed guild; cross-guild update affects 0 rows; cross-guild insert blocked "new row violates row-level security policy"; test data + temp user cleaned up)
+[x] Anon RLS check (verified with publishable key: 0 rows on guilds/guild_settings/activity_logs/dashboard_admins; anon insert blocked 42501; cleanup OK)
+PHASE 2: DONE (2026-11-19)
+
+PHASE 3 - DISCORD BOT CORE
+[x] Bot entry point finalized (main.py, lifecycle hooks, clean startup/shutdown handling)
+[x] Command prefix (!) from config/DB with env fallback and 30s settings cache
+[x] Command handling and cog autoload (core/general + core_admin cogs, extension load logging)
+[x] Permission validation decorators/checks (bot/core/permissions.py)
+[x] Error handling (user-facing + contextual logging, command/event handlers)
+[x] Rotating file + console logging (bot/logs/bot.log, noise-tuned loggers)
+[x] Automatic reconnection/resilience (discord.py reconnect, guarded async DB access, safe fallbacks)
+[x] Async Supabase service wrapper integrated (asyncio.to_thread, ping/settings helpers)
+[x] Sample cog and core commands verified (live: `!ping` -> Pong! WS: 234ms | RTT: 408ms; user confirmed `!botinfo`/`!prefix`/`!extensions`/`!dbping` checks in Discord; bot log shows "guilds table accessible")
+PHASE 3: DONE (2026-11-19)
+
+PHASE 4 - WELCOME & MEMBER MANAGEMENT
+[x] Member join/leave events (on_member_join/on_member_remove/on_member_update in cogs/welcome.py)
+[x] Automatic welcome messages (guild_settings.welcome_*; text or embed)
+[x] Custom welcome embeds (embed with avatar thumbnail, banner image, accent color)
+[x] Pillow-generated welcome banners (1024x400, bundled DejaVu fonts, avatar/name/number/dates; offline render tests pass)
+[x] Member avatar, username, display name (stored + rendered)
+[x] Automatic member numbering (DB-backed `next_member_number` RPC; verified 1,2 atomic)
+[x] Account creation date and server join date (stored + placeholders)
+[x] Automatic role assignment (auto_role_ids, hierarchy + Manage Roles guards)
+[x] Welcome DM (welcome_dm_enabled/message, Forbidden-safe)
+[x] Goodbye messages (goodbye_enabled/channel/message)
+[x] Member records in Supabase (upsert/get/update/left_at verified against live DB)
+[x] Live verification: `!welcome test`, `!welcome channel/toggle`, `!autorole add/list`, `!goodbye test`, then a real join/leave (banner + number + autorole + member row)
+PHASE 4: COMPLETE (user-confirmed live)
+
+PHASE 5 - MODERATION SYSTEM
+[x] Ban command (`!ban`/`!unban`, hierarchy + DM + audit reason)
+[x] Kick command (`!kick`, hierarchy + DM)
+[x] Timeout command (`!timeout`/`!untimeout`, durations up to 28d)
+[x] Warning system (`!warn`, stored in Supabase, DM notice, active count)
+[x] Unwarn command (`!unwarn @member <id|latest>`, soft-deactivate)
+[x] Clear messages (`!clear <1-500> [@member]`, skips pinned)
+[x] Lock/unlock channels (`!lock`/`!unlock` @everyone send_messages override)
+[x] Anti-spam protection (sliding window, purge + optional timeout, configurable)
+[x] Anti-link protection (allowlisted media domains, delete + log)
+[x] Anti-invite protection (discord.gg/invite patterns, delete + log)
+[x] Moderation history (`!modlogs [@member]`, Supabase-backed)
+[x] Moderation logs in Supabase (`moderation_logs` + `!modlog #channel` mirror)
+[~] Live verification: !ban/!kick/!timeout/!untimeout/!warn/!warnings/!unwarn/!clear/!lock/!unlock/!modlog/!modlogs/!automod with a test member
+PHASE 5: IN PROGRESS (code+offline+DB verified; live Discord checks pending)
+
+PHASE 6 - SERVER MANAGEMENT
+[x] User information command (`!userinfo`/`!whois`)
+[x] Server information command (`!serverinfo`)
+[x] Avatar command (`!avatar`/`!av`)
+[x] Role information command (`!roleinfo`)
+[x] Poll creation (`!poll Question | Option 1 | Option 2`, `!poll results|end <message_id>`; Supabase `polls`)
+[x] Custom embed creation (`!embed #channel "Title" "Description" [color] [image_url]`)
+[x] Slowmode management (`!slowmode 10s|1m|off [#channel]`, max 6h)
+[x] Reaction roles (`!reactionrole add/remove/list`, `on_raw_reaction_add/remove`, Supabase `reaction_roles`)
+[x] Server statistics (`!serverstats` + `!serverstats history`, snapshots in `server_stats`)
+[~] Live verification: !userinfo/!serverinfo/!avatar/!roleinfo/!slowmode/!embed/!poll/!reactionrole/!serverstats
+PHASE 6: IN PROGRESS (code+offline+DB verified; live Discord checks pending)
+
+PHASE 7 - TEMPORARY VOICE CHANNEL SYSTEM
+[x] Join-to-create trigger (`on_voice_state_update`, `temp_voice_trigger_channel_id`)
+[x] Create temporary voice channels (permissions for owner, category from settings)
+[x] Custom channel names (`temp_voice_name_template`, `{user}`/`{display_name}`)
+[x] Maximum member capacity (`temp_voice_default_limit`, `!tempvoice size`)
+[x] Automatic member movement (bot moves member into created channel)
+[x] Channel ownership (owner gets Manage Channel/Move Members; `!tempvoice claim`)
+[x] Rename channels (`!tempvoice name <name>`)
+[x] Change member limits (`!tempvoice size <0-99>`)
+[x] Lock/unlock channels (`!tempvoice lock|unlock`, `is_locked` in DB)
+[x] Kick members (`!tempvoice kick @member`, disconnects from voice)
+[x] Automatic deletion when empty (empty human channel deleted + `deleted_at` set)
+[x] Save temporary channel records in Supabase (`temp_voice_channels`, reconciled on startup)
+[~] Live verification: `!tempvoice setup #trigger [#category]`, join trigger, name/size/lock/unlock/kick/claim/delete, auto-delete when empty
+PHASE 7: IN PROGRESS (code+offline+DB verified; live Discord checks pending)
+
+PHASE 8 - LOGGING SYSTEM
+[x] Member join/leave logs (`on_member_join`/`on_member_remove`; account age, member count)
+[x] Message deletion logs (cached content, attachments, bulk-delete summary)
+[x] Message edit logs (before/after content snapshots)
+[x] Role change logs (added/removed role diff)
+[x] Nickname change logs (before/after)
+[x] Voice activity logs (join/leave/move)
+[x] Moderation action logs (mirrored into `activity_logs` by `record_action`; `!modlog` channel remains)
+[x] Channel creation/deletion logs (name, type, category)
+[x] Configurable logging channels (`!logs set <event> [#channel|off]`, `!logs status`, `!logs test <event>`)
+[x] Store relevant logs in Supabase (`activity_logs`; `!logs history [event] [limit]`)
+[~] Live verification: configure `!logs set` for each event, trigger events (join/leave, delete/edit, roles/nick, voice, channels), confirm channel embeds + `!logs history`
+PHASE 8: IN PROGRESS (code+offline+DB verified; live Discord checks pending)
+
+PHASE 9 - AUTOMATION SYSTEM
+[x] Scheduler (APScheduler) loaded from DB (AsyncIOScheduler UTC; jobs restored at startup from enabled `automations.cron`)
+[x] Scheduled announcements (`!automation announcement <name> "<cron>" #channel <message>`)
+[x] Automated messages (`!automation message <name> "<cron>" #channel <message>`)
+[x] Member reminders (`!automation reminder <name> "<cron>" #channel <message>`, role/user mentions allowed)
+[x] Automatic role assignment (automation) (`!automation autorole <name> @role...`, applied on join)
+[x] Welcome automation hooks (`!automation welcome <name> #channel <message>`, extra join message)
+[x] Goodbye automation hooks (`!automation goodbye <name> #channel <message>`, extra leave message)
+[x] Periodic server statistics snapshots (`!automation stats <name> "<cron>" [#channel]`, saved to `server_stats`)
+[x] Automated moderation responses (`!automation response <name> <trigger> <reply>`, `|` for multiple phrases)
+[x] Management commands (`!automation list|status|toggle|remove <id|name>`, `last_run_at` updates)
+[~] Live verification: create announcement/stats/response/reminder automations, confirm scheduled posts, join/leave hooks, autorole, keyword responses, restart persistence
+PHASE 9: IN PROGRESS (code+offline+DB verified; live Discord checks pending)
+
+PHASE 10 - WEB DASHBOARD UI/UX
+[x] Next.js + TS + Tailwind scaffold in dashboard/ (Next 15.5.29, React 19.2.9, Tailwind 4.3.5)
+[x] Triumph branding (navy/royal-purple/gold, Cinzel + Inter, triumph-icon.png logo)
+[x] Public site pages: `/` homepage, `/terms` Terms of Service, `/privacy` Privacy Policy
+[x] Responsive layout and navigation sidebar (`components/dashboard-shell.tsx`, `lib/nav.ts`)
+[x] Login page (`/login` + Discord OAuth button, error/safe-next handling)
+[x] Overview page (`/dashboard` live counts, recent activity, verification)
+[x] Settings pages (`/dashboard/settings` + welcome/moderation/logging/temp-voice)
+[x] Management pages (`/dashboard/management` + automations/reaction-roles/warnings)
+[x] Statistics interface (`/dashboard/statistics` latest + snapshot history)
+[x] Activity logs interface (`/dashboard/activity` unified trail)
+[x] Loading/empty/error states (route-level loading, error, not-found, empty panels)
+PHASE 10: IN PROGRESS (code+build+smoke verified; live browser checks pending)
+
+PHASE 11 - WEB DASHBOARD AUTHENTICATION
+[~] Supabase Auth Discord OAuth2 provider configured (code ready; dashboard must be enabled in Supabase)
+[x] Administrator login flow (`/login`, `auth/callback`, safe next redirect)
+[x] Verify Discord identity (`lib/auth.ts` provider identity match)
+[x] Check authorized server membership and admin roles (`lib/discord.ts`, optional `DISCORD_BOT_TOKEN`)
+[x] Dashboard access permissions (dashboard_admins) (`requireDashboardAccess` + RLS)
+[x] Secure sessions and middleware refresh (`middleware.ts`, `@supabase/ssr` cookie pattern)
+[x] Protect dashboard routes (middleware + layout guard + forbidden state)
+[x] Implement logout (`auth/signout` POST route + shell/access-denied buttons)
+PHASE 11: IN PROGRESS (code+build verified; Supabase provider + admin row pending user setup)
+
+PHASE 12 - DASHBOARD BACKEND & INTEGRATION
+[x] Connect dashboard to Supabase (anon + server clients)
+[x] Retrieve server configurations
+[x] Update welcome settings
+[x] Manage moderation settings
+[x] Configure logging channels
+[x] Configure temporary voice settings
+[x] Manage automation settings
+[x] Display member statistics
+[x] Display moderation history
+[x] Display server activity
+[x] Synchronize dashboard changes with bot (cache invalidation/30s refresh)
+PHASE 12: COMPLETE (code+typecheck+build+pytest+ruff verified; live admin-row walkthrough pending)
+
+PUBLIC COMMAND REFERENCE (added during Phase 12)
+[x] `/command` page: 93 commands across 10 modules, search + category filters
+[x] Command data source: `dashboard/src/lib/commands.ts` (usage, aliases, permissions)
+[x] Navigation: Commands link in site header and footer
+
+PHASE 13 - DEPLOYMENT & HOSTING
+[~] Website - Vercel: config/env matrix/runbook prepared; live import, env vars, deploy, domain, production test pending
+[~] Database - Supabase: migration/RLS/backup runbook prepared; production apply, credential wiring, backup proof pending
+[~] Discord Bot - Render: render.yaml start/health/env config ready; live Blueprint deploy and gateway verification pending
+[~] Monitoring - UptimeRobot: 5-min HTTP/keyword monitor procedure prepared; account, monitors, HTTP test, alerts pending
+PHASE 13: IN PROGRESS
+
+PHASE 14 - TESTING & QUALITY ASSURANCE
+[ ] Test all bot commands
+[ ] Test welcome system
+[ ] Test moderation permissions
+[ ] Test temporary voice channels
+[ ] Test logging events
+[ ] Test automation
+[ ] Test dashboard authentication
+[ ] Test dashboard configurations
+[ ] Test Supabase synchronization
+[ ] Test bot reconnection
+[ ] Test hosting interruptions
+[ ] Test security and access restrictions
+[ ] Bot lint/tests pass (ruff, pytest, compileall)
+[ ] Dashboard lint/typecheck/build pass
+PHASE 14: PENDING
+
+PHASE 15 - FINAL DEPLOYMENT & MAINTENANCE
+[ ] Final production deployment
+[ ] Verify all integrations
+[ ] Monitor bot availability
+[ ] Monitor database usage
+[ ] Review application logs
+[ ] Fix reported bugs
+[ ] Optimize performance
+[ ] Document commands (docs/COMMANDS.md)
+[ ] Document dashboard usage (docs/DASHBOARD.md)
+[ ] Document deployment (docs/DEPLOYMENT.md)
+[ ] Prepare maintenance procedures (docs/MAINTENANCE.md)
+PHASE 15: PENDING
+
+---
+CHECKPOINT LOG
+[2026-11-18] Phase 1 started: monorepo scaffold and task tracking created.
+[2026-11-18] Phase 1 scaffold/code checkpoint:
+  - git: initialized local repo (no remote configured; repo URL needed)
+  - created: .gitignore, .env.example, README.md, render.yaml, task.txt, bot/{main.py,config.py,requirements.txt,runtime.txt}, bot/core/{__init__,bot,database,health,logging}.py, bot/cogs/{__init__,general}.py, bot/services/__init__.py, directory scaffold for dashboard/supabase/docs/assets/tests
+  - env: created bot/.venv (Python 3.12) and installed requirements (discord.py, Flask, supabase, Pillow, APScheduler, aiohttp, pydantic, pytest, ruff)
+  - verification: `python -m compileall bot` OK; `bot\.venv\Scripts\python.exe -m ruff check bot` -> All checks passed
+  - smoke test: started bot without credentials; `GET http://127.0.0.1:18080/health` -> 200 {"status":"ok","bot_ready":false,"discord_configured":false,"supabase_configured":false,...}
+  - blocked: configure GitHub remote (need URL), Supabase connectivity check (need bot/.env values), Discord login + !ping (need DISCORD_TOKEN in bot/.env; ensure Server Members + Message Content intents enabled in portal)
+  - next to unblock Phase 1: fill bot/.env from .env.example, provide git remote URL (or run `git remote add origin <url>`), then run `bot\.venv\Scripts\python.exe bot\main.py` and verify bot online + `!ping` + Supabase log on ready. After that say "Start Phase 2".
+[2026-11-18] Phase 2 database artifacts checkpoint:
+  - created: supabase/migrations/0001_initial_schema.sql, supabase/migrations/0002_rls_policies.sql, supabase/tests/rls_checks.sql, supabase/README.md
+  - schema: guilds, guild_settings, members, warnings, moderation_logs, temp_voice_channels, reaction_roles, automations, polls, activity_logs, server_stats, dashboard_admins (all guild_id-ready; FKs with on delete cascade)
+  - helpers: set_updated_at() triggers, next_member_number(guild_id) RPC (security definer, service_role only), is_dashboard_admin(guild_id) for RLS
+  - indexes: guild/time indexes on logs/stats/polls, member numbering/join indexes, warning/mod target lookups, temp_voice active/owner, reaction_roles/automations, dashboard_admin lookups
+  - RLS: enabled+forced on all tables; dashboard_admins self-select only; guild-scoped select policies for admins; settings/reaction_roles/automations admin CRUD; bot/history tables read-only to dashboard
+  - verification: bot env check -> SUPABASE_URL/service_role not configured in bot/.env; psql/supabase CLI/docker not available locally
+  - blocked: apply migrations to Supabase project and run RLS/operation tests (needs Supabase SQL editor access or CLI with project linked)
+  - to complete Phase 2: run migrations 0001 then 0002 in Supabase SQL editor, execute/adjust supabase/tests/rls_checks.sql to confirm anon cross-guild access blocked, then run a service-role smoke test (e.g. upsert guilds/guild_settings). Reply "Start Phase 3" after apply+tests pass.
+[2026-11-18] Phase 3 core implementation checkpoint:
+  - modified: bot/main.py, bot/core/bot.py, bot/core/database.py, bot/core/logging.py, task.txt
+  - added: bot/core/permissions.py, bot/core/settings_cache.py, bot/cogs/core_admin.py
+  - core: async DB wrapper (service_role, asyncio.to_thread) with ping/get_guild_settings/upsert_guild_settings; dynamic prefix resolver (DB guild_settings -> env -> '!') with 30s TTL cache and safe fallbacks; lifecycle logging (connect/disconnect/resume/error); expanded command error handling (unwrap invoke errors, perms/args/cooldown/check failures, contextual logging); permission helpers (guild/admin/manage/mod/owner-or-admin); rotating file+console logging retained/tuned; reconnect=True and resilient no-config behavior
+  - verification commands/cogs: cogs.general (!ping), cogs.core_admin (!botinfo, !dbping, !extensions/!cogs, !prefix, !reload owner-only); setup_hook loads all bot/cogs/*.py
+  - static verification: `bot\.venv\Scripts\python.exe -m ruff check bot` -> All checks passed; `python -m compileall bot` OK
+  - smoke/load verification: `setup_hook` load test -> EXTS=cogs.core_admin,cogs.general, CMDS=botinfo,dbping,extensions,help,ping,prefix,reload; ran bot without creds on :18081 -> `GET /health` 200 {"status":"ok","bot_ready":false,"discord_configured":false,"supabase_configured":false,...}
+  - blocked/live pending: Discord login + real !ping/prefix/db-backed checks (need DISCORD_TOKEN, intents, bot/.env), Supabase live ping/prefix from DB (need SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY and Phase 2 migrations applied), GitHub remote still not configured
+  - next: provide credentials and apply Phase 2 migrations to complete live verification, then reply "Start Phase 4".
+[2026-11-18] Requirements consolidation (root + bot):
+  - populated root requirements.txt (was placeholder) and synced bot/requirements.txt with consolidated Python deps for Phases 1-9,14 (discord.py, python-dotenv, supabase, Flask, aiohttp, Pillow, APScheduler, tzdata, pydantic, pytest, pytest-asyncio, ruff)
+  - installed in bot/.venv: tzdata 2026.6, pytest-asyncio 0.26.0 (other deps already satisfied)
+  - verification: import tzdata/pytest_asyncio OK; `ruff check bot` pass; `compileall bot` OK; smoke `GET /health` 200 on :18082 without creds
+  - note: render.yaml installs from bot/requirements.txt (rootDir bot); dashboard npm deps (Phases 10-12) remain pending as separate package.json work. Live/config blockers unchanged.
+[2026-11-18] Requirements notes updated:
+  - added IN-PROGRESS-only phase prerequisites/missing items (Phases 1-3) as comments in root requirements.txt and bot/requirements.txt; pending phases intentionally excluded.
+[2026-11-18] Phase 1 progress:
+  - git remote configured: origin -> https://github.com/Hxze-prog/Triumph-Bot.git (fetch/push); updated task.txt and requirements.txt to mark remote done. Remaining Phase 1 blockers: live Supabase/Discord verification + intents/!ping.
+[2026-11-19] Phase 1 live verification (partial):
+  - created bot/.env from root .env (config ready: discord_ready=True, supabase_ready=True, guild_id=1569030756515323974)
+  - ran `bot\.venv\Scripts\python.exe bot\main.py` (port 18085): extensions loaded (cogs.core_admin,cogs.general), connected to gateway, logged in as Triumph Bot#6836 (id=1572684593285439640), Guilds: 0, Supabase: "Supabase reachable (schema not applied yet)"
+  - /health -> 200 {"status":"ok","bot_ready":true,"discord_configured":true,"supabase_configured":true,"guilds":0}
+  - marked Supabase connectivity and Discord login done in task.txt/requirements.txt
+  - still blocked: !ping not verifiable (bot in 0 guilds). Action needed: invite bot to target server, enable Server Members + Message Content intents in Discord Developer Portal, then send !ping in a channel and confirm response.
+[2026-11-19] Phase 1/2/3 progress (automated where possible):
+  - git remote verified: origin https://github.com/Hxze-prog/Triumph-Bot.git
+  - live bot run (port 18086): logged in as Triumph Bot#6836 (id=1572684593285439640), Guilds: 1, Supabase: "Supabase reachable (schema not applied yet)", /health 200 {"bot_ready":true,"discord_configured":true,"supabase_configured":true,"guilds":1}
+  - service-role probe: `public.guilds` query failed with PGRST205 "Could not find the table 'public.guilds' in the schema cache" -> schema not applied
+  - updated task.txt and requirements.txt to reflect Guilds:1 and schema-not-applied state
+  - cannot complete from environment: (1) manual in-Discord `!ping`/command tests and intent confirmation in Developer Portal, (2) apply Phase 2 migrations and run RLS/smoke tests in Supabase SQL Editor/linked CLI (no psql/Supabase CLI/DDL execution path available locally)
+[2026-11-19] Phase 1 DONE + Phase 2 migrations applied (grants follow-up):
+  - user enabled Server Members + Message Content intents; !ping verified live in guild 1569030756515323974 -> Pong! WS: 234ms | RTT: 408ms
+  - fixed bot/core/bot.py _get_prefix signature (discord.py calls prefix(bot, message)); ruff + compileall pass
+  - user applied 0001_initial_schema.sql + 0002_rls_policies.sql in Supabase SQL Editor (tables now exist; PGRST205 gone)
+  - new probe result: all 12 tables return 42501 "permission denied for table ..." -> PostgREST roles lack grants (tables created via SQL editor)
+  - added supabase/migrations/0003_grants.sql (usage on public; service_role full DML; authenticated DML under RLS; anon select under RLS; RPC execute; default privileges) + updated supabase/README.md
+  - Phase 1 marked DONE; Phase 2 remains IN PROGRESS pending running 0003 then service-role smoke test + supabase/tests/rls_checks.sql
+  - Phase 3: !ping live-verified; remaining in-Discord checks !botinfo/!prefix/!extensions/!reload and !dbping/DB prefix pending Phase 2 completion
+  - note: no SUPABASE_ANON_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY in .env, so anon RLS check must run in SQL editor (or add anon key later for dashboard/Phase 11)
+[2026-11-19] Phase 2 verification (post-grants):
+  - user ran supabase/migrations/0003_grants.sql; service-role probe: all 12 tables OK (FAILED_TABLES=0)
+  - service-role smoke test PASS: upsert guild+guild_settings, select, update prefix, updated_at trigger select, next_member_number RPC -> 1, delete cleanup
+  - authenticated RLS test PASS (temp auth user, deleted after): activity_logs visible only for allowed guild; guild_settings cross-guild update = 0 rows; guilds select only allowed guild; automations cross-guild insert blocked (42501 RLS)
+  - still pending: anon-context RLS check (no SUPABASE_ANON_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY in .env; add publishable key to .env or run anon block in supabase/tests/rls_checks.sql)
+  - bot live run (port 18088): extensions loaded, logged in as Triumph Bot#6836, Guilds: 1, "Supabase: Supabase reachable (guilds table accessible)." -> DB-backed prefix/dbping now have working backend
+[2026-11-19] Phase 2 DONE:
+  - user added SUPABASE_ANON_KEY (sb_publishable_*) to root .env; config does not load it (bot-only config), test script parsed .env directly
+  - anon RLS PASS: guilds/guild_settings/activity_logs/dashboard_admins all 0 rows; anon insert into activity_logs blocked 42501; seed+cleanup OK
+  - Phase 2 complete: schema, triggers, RPC, service-role access, authenticated isolation, anon restriction all verified
+[2026-11-19] Phase 3 DONE / Phase 4 started:
+  - user confirmed live command checks (!ping/!botinfo/!prefix/!extensions/!dbping) completed in guild 1569030756515323974; Phase 3 marked DONE
+  - Phase 4 decisions: add admin config commands now (welcome/goodbye/autorole/test), bundle DejaVu Sans fonts in bot/assets/fonts, number humans only (bots skip welcome + numbering)
+  - no new migration needed: members + guild_settings welcome/goodbye/auto_role columns and next_member_number RPC already exist
+[2026-11-19] Phase 4 implementation checkpoint:
+  - added: bot/services/{fonts,banner,templates}.py, bot/cogs/welcome.py, bot/tests/{conftest,test_banner,test_templates}.py, bot/assets/fonts/{DejaVuSans.ttf,DejaVuSans-Bold.ttf,LICENSE-DejaVu.txt,README.md}
+  - database: added next_member_number, get/upsert/update_member, set_member_left, upsert_guild helpers (asyncio.to_thread pattern)
+  - commands: !welcome (status/channel/message/template/toggle/embed/banner/dm/test), !goodbye (status/channel/message/toggle/test), !autorole (list/add/remove/clear)
+  - verification: ruff pass; compileall pass; pytest 12 passed; extension load EXTS=cogs.core_admin,cogs.general,cogs.welcome; live bot startup clean (port 18089) with Guilds:1 + guilds table accessible
+  - live DB test: upsert_guild/next_member_number(1,2)/upsert_member/get_member/update_member/set_member_left all PASS; cleanup OK
+  - preview banner rendered to %TEMP%\opencode\welcome_preview.png (1024x400 PNG)
+  - pending: in-Discord live checks (!welcome test/channel/toggle, !autorole add/list, !goodbye test) + real join/leave; confirm Manage Roles/Attach Files/Embed Links permissions
+  - fix: !welcome test crashed with "Expected int parameter, received tuple instead" -> discord.Color(accent) needs int; changed to discord.Color.from_rgb(*accent); added bot/tests/test_welcome_payload.py regression test
+  - re-verified: ruff pass, compileall pass, pytest 13 passed (incl. payload embed color int), extensions load cogs.welcome with 8 subcommands
+  - fix: !welcome test / !goodbye test now send to the configured welcome/goodbye channel (fallback: current channel); accepts optional @member or #channel; confirmation posted when preview goes elsewhere
+  - diagnostics: welcome/goodbye channels exist with view/send/embed/attach permissions; members table still 0 rows -> no real join event has fired yet (join listeners registered: 1 each for join/remove/update)
+  - user welcome_message currently has literal {Shion}/{haha}/{0} instead of placeholders {user}/{server}/{member_number} (config left unchanged)
+[2026-11-19] Phase 4 COMPLETE + Phase 5 implementation:
+  - Phase 4 closed: user confirmed all live welcome/goodbye/autorole/join-leave checks passed
+  - Phase 5 added: cogs/moderation.py (ban/unban/kick/timeout/untimeout/warn/warnings/unwarn/clear/lock/unlock/modlog/modlogs), cogs/automod.py (spam/link/invite on_message + !automod config), services/durations.py, services/automod_rules.py, services/modlog.py, core/settings.py
+  - Database helpers added: add_warning, list_warnings, get_warning, deactivate_warning, count_active_warnings, add_moderation_log, list_moderation_logs
+  - Verified offline: ruff pass; 26 tests pass (durations, automod rules, spam tracker, banner, templates, welcome payload); extension load AutoMod/CoreAdmin/General/Moderation/Welcome; live startup on :18090 logged in (Guilds: 1, Supabase reachable)
+  - Verified live DB: warning insert/list/count/get/deactivate (1 -> 0) and moderation_logs insert/list roundtrip PASS; test rows cleaned up
+  - Pending live Discord checks: !ban/!unban/!kick/!timeout/!untimeout/!warn/!warnings/!unwarn/!clear/!lock/!unlock/!modlog/!modlogs/!automod with a test member
+[2026-11-19] Phase 6 + Phase 7 implementation:
+  - Phase 6 added: cogs/server.py (!userinfo/!serverinfo/!avatar/!roleinfo/!slowmode/!embed/!poll results+end/!serverstats history), cogs/reaction_roles.py (!reactionrole add/remove/list + raw reaction listeners + raw message delete cleanup), services/polls.py, services/discord_links.py
+  - Phase 7 added: cogs/temp_voice.py (join-to-create, owner name/size/lock/unlock/kick/claim/delete, empty auto-delete, startup reconciliation), services/temp_voice.py (template render + limit clamp)
+  - Database helpers added: add/get/list/remove/delete reaction roles, upsert/get/list/update/mark-deleted temp voice channels, create/set-message/get/close polls, add/list server stats
+  - services/discord_links.py parses message links + emojis; core/settings.save_settings now ensures the guilds row exists (FK safety); poll keycap emojis normalized for reliable reaction counts
+  - Verified live DB: reaction_roles add/get/list/remove PASS; temp_voice upsert/update/list/mark-deleted PASS; polls create/set-message/get/close PASS; server_stats insert/list PASS; test rows cleaned up
+  - Verified live startup on :18092 (8 extensions loaded, gateway connected, Guilds: 1, Supabase reachable, temp-voice reconcile clean)
+  - Pending live Discord checks: Phase 5 moderation/automod; Phase 6 info/poll/embed/slowmode/reaction roles/stats; Phase 7 temp voice setup + join trigger + owner controls + auto-delete
+[2026-11-19] Phase 6 + Phase 7 implementation:
+  - Phase 6 added: cogs/server.py (!userinfo/!serverinfo/!avatar/!roleinfo/!slowmode/!embed/!poll results+end/!serverstats history), cogs/reaction_roles.py (!reactionrole add/remove/list + raw reaction listeners + raw message delete cleanup), services/polls.py, services/discord_links.py
+  - Phase 7 added: cogs/temp_voice.py (join-to-create, owner name/size/lock/unlock/kick/claim/delete, empty auto-delete, startup reconciliation), services/temp_voice.py (template render + limit clamp)
+  - Database helpers added: add/get/list/remove/delete reaction roles, upsert/get/list/update/mark-deleted temp voice channels, create/set-message/get/close polls, add/list server stats
+  - services/discord_links.py parses message links + emojis; core/settings.save_settings now ensures the guilds row exists (FK safety); poll keycap emojis normalized for reliable reaction counts
+  - Verified offline: ruff pass; 46 tests pass; compileall pass; all 8 cogs load (AutoMod, CoreAdmin, General, Moderation, ReactionRoles, Server, TempVoice, Welcome); command/subcommand registration checked
+  - Verified live DB: reaction_roles add/get/list/remove PASS; temp_voice upsert/update/list/mark-deleted PASS; polls create/set-message/get/close PASS; server_stats insert/list PASS; test rows cleaned up
+  - Verified live startup on :18092 (8 extensions loaded, gateway connected, Guilds: 1, Supabase reachable, temp-voice reconcile clean)
+  - Pending live Discord checks: Phase 5 moderation/automod; Phase 6 info/poll/embed/slowmode/reaction roles/stats; Phase 7 temp voice setup + join trigger + owner controls + auto-delete
+[2026-11-19] Phase 8 + Phase 9 implementation:
+  - Phase 8 added: cogs/logging.py (member join/leave, message delete/bulk delete/edit, role/nickname, voice join/leave/move, channel create/delete, !logs set/status/test/history), services/activity_log.py (event registry, channel resolution, truncation, activity_logs inserts)
+  - Phase 9 added: cogs/automations.py (APScheduler AsyncIOScheduler UTC, DB job restore, cron validation, !automation announcement/message/reminder/stats/autorole/welcome/goodbye/response/list/status/toggle/remove), services/automations.py (types, cron parsing, placeholders, chunking, response matching), services/server_stats.py (shared snapshot collection)
+  - Database helpers added: add/list activity_logs; add/get/list/update/delete automations + mark_automation_run; record_action now mirrors moderation actions into activity_logs
+  - Verified offline: ruff pass; 56 tests pass; compileall pass; 10 cogs load (AutoMod, Automations, CoreAdmin, General, Logging, Moderation, ReactionRoles, Server, TempVoice, Welcome); !logs and !automation subcommands registered; scheduler running
+  - Verified live DB: activity_logs insert/list PASS; automations add/get/update/delete PASS; scheduler job registration for a saved automation PASS; test rows cleaned up
+  - Verified live startup on :18093 (10 extensions, scheduler ready with 0 jobs, gateway connected, Guilds: 1, Supabase reachable)
+  - Pending live Discord checks: Phase 5 moderation/automod; Phase 6 info/poll/embed/slowmode/reaction roles/stats; Phase 7 temp voice; Phase 8 log channels + events; Phase 9 scheduled jobs + hooks + responses
+[2026-11-19] Phase 10 + Phase 11 implementation (dashboard):
+  - branding: renamed Sovereign -> Triumph across bot (TriumphBot, health service triumph-bot, embeds/footers), README, task.txt, render.yaml, supabase comments, dashboard; logo copied to dashboard/public/triumph-icon.png and dashboard/src/app/icon.png (source: Triumph_icon.png), old S monogram icon.svg removed
+  - dashboard scaffold: Next 15.5.29, React 19.2.9, Tailwind 4.3.5, TypeScript 5.9.3, @supabase/ssr 0.12.7; metadata, Cinzel + Inter, navy/royal/gold theme
+  - public pages: / (homepage with logo, features, automation and security sections), /terms, /privacy, /login (Discord OAuth button); shared brand/site header/footer/panel/stat-card/badge/empty-state/access-denied components
+  - dashboard pages: /dashboard overview (live counts + recent activity + verification), statistics (latest + history + composition), activity (unified trail), settings (index/welcome/moderation/logging/temp-voice), management (index/automations/reaction-roles/warnings); read-only Supabase queries with ::text casts for snowflake IDs
+  - auth: requireDashboardAccess (session -> dashboard_admins -> Discord provider identity -> optional live membership/role check), middleware session refresh + route protection, auth/callback code exchange, auth/signout POST, AccessDenied + logout controls
+  - env: dashboard/.env.local created from root SUPABASE_URL/SUPABASE_ANON_KEY plus DISCORD_GUILD_ID/DISCORD_BOT_TOKEN (gitignored)
+  - verified offline: npm install; npm run typecheck pass; npm run build pass (22 routes, middleware 95.6 kB); next start smoke: /, /terms, /privacy, /login = 200 and /dashboard = 307 -> /login; pytest 56 pass; ruff check bot pass (from repo root)
+  - pending user setup: enable Supabase Auth Discord provider + redirect URLs (http://localhost:3000/auth/callback and production), insert a dashboard_admins row via service-role SQL, then browser walkthrough of the dashboard pages
+[2026-11-19] Phase 12 implementation + /command page:
+  - dashboard backend: lib/settings.ts (shared defaults/log event metadata), lib/discord.ts fetchGuildDirectory (text/voice/category channels + roles, 60s revalidate, graceful fallback)
+  - server actions: settings/actions.ts (welcome, automod, logging, temp-voice validation + guild_settings upsert + revalidate), management/actions.ts (setAutomationEnabled)
+  - editing UI: components/settings/{field,save-bar,welcome-form,automod-form,logging-form,temp-voice-form}.tsx and management/automation-toggle.tsx; settings welcome/moderation/logging/temp-voice pages rewritten to editable forms; settings index copy updated
+  - automations page: per-row enable/pause toggle, removed preview notice, documents 30s sync and Discord-side management commands
+  - bot sync: cogs/automations.py now reloads enabled jobs every 30s (tasks.loop), skips rescheduling existing jobs, removes stale automation:* jobs, cancels loop on unload
+  - public /command page: 93 commands across 10 modules in lib/commands.ts, client CommandBrowser with search + category filters, metadata, header/footer links; only prefix is configurable at runtime
+  - verified offline: npm run typecheck pass; npm run build pass (23 routes incl. /command); pytest 56 pass; ruff check bot pass
+  - pending user walkthrough: insert dashboard_admins row (SETUP_DASHBOARD_ADMIN.txt), sign in, save each settings form, confirm bot reflects changes within 30s, and toggle an automation from the dashboard
+[2026-11-19] Phase 13 deployment preparation:
+  - added docs/DEPLOYMENT.md: Supabase production migrations/RLS/OAuth/admin bootstrap/backup-export strategy, Render Blueprint/env/health verification, Vercel import/env/domain/OAuth checks, UptimeRobot 5-min monitor, production smoke test, rollback and troubleshooting
+  - added scripts/verify_deployment.ps1: checks dashboard /, /command, /terms, /privacy, /login and bot /health fields (status, discord_configured, supabase_configured, bot_ready, guilds)
+  - updated render.yaml: autoDeploy enabled and PYTHONUNBUFFERED=1; existing rootDir bot, python 3.12.10, start `python main.py`, `/health`, service-role env vars retained
+  - updated .gitignore: ignore session.txt, *.tsbuildinfo, dashboard/.vercel; keep bot/dashboard .env.example files trackable
+  - updated README with Phase 13 deployment summary and runbook link
+  - live deployment blocked on external actions: push repository to GitHub, apply/verify Supabase production migrations, create Render Blueprint + env vars, import Vercel project + env/domain/OAuth redirects, create UptimeRobot monitors

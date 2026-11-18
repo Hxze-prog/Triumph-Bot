@@ -1,0 +1,58 @@
+# Triumph Bot - consolidated Python requirements (Phases 1-9, 14)
+# Runtime / Discord / API / DB
+discord.py>=2.4.0,<3.0.0
+python-dotenv>=1.0.1,<2.0.0
+supabase>=2.6.0,<3.0.0
+Flask>=3.0.0,<4.0.0
+aiohttp>=3.9.0,<4.0.0
+
+# Features (welcome banners, automation/scheduling, validation)
+Pillow>=10.4.0,<12.0.0
+APScheduler>=3.10.4,<4.0.0
+tzdata>=2024.1
+pydantic>=2.8.0,<3.0.0
+
+# Testing & quality (Phase 14)
+pytest>=8.0.0,<9.0.0
+pytest-asyncio>=0.23.0,<1.0.0
+ruff>=0.6.0,<1.0.0
+
+# -----------------------------------------------------------------------------
+# IN-PROGRESS PHASE REQUIREMENTS / MISSING ITEMS (only phases marked IN PROGRESS)
+# -----------------------------------------------------------------------------
+
+# PHASE 5 - Moderation System (IN PROGRESS)
+# - [x] No new pip packages and no new DB migration (warnings + moderation_logs tables and automod_*/log_moderation_channel_id columns already exist)
+# - [~] Discord permissions to confirm: Ban Members, Kick Members, Moderate Members, Manage Messages, Manage Channels, Embed Links
+# - [~] Live verification: !ban/!kick/!timeout/!untimeout/!warn/!warnings/!unwarn/!clear/!lock/!unlock/!modlog/!modlogs/!automod with a test member
+
+# PHASE 6 - Server Management (IN PROGRESS)
+# - [x] No new pip packages and no new DB migration (reaction_roles, polls, server_stats tables already exist)
+# - [~] Discord permissions to confirm: Manage Roles (reaction roles), Manage Channels (slowmode), Manage Messages (polls/embeds)
+# - [~] Live verification: !userinfo/!serverinfo/!avatar/!roleinfo/!slowmode/!embed/!poll/!reactionrole/!serverstats
+
+# PHASE 7 - Temporary Voice Channel System (IN PROGRESS)
+# - [x] No new pip packages and no new DB migration (temp_voice_channels + guild_settings temp_voice_* columns already exist)
+# - [~] Discord permissions to confirm: Manage Channels, Move Members, Manage Roles (owner overwrites)
+# - [~] Live verification: !tempvoice setup, join trigger, name/size/lock/unlock/kick/claim/delete, auto-delete when empty
+
+# PHASE 8 - Logging System (IN PROGRESS)
+# - [x] No new pip packages and no new DB migration (activity_logs + guild_settings log_*_channel_id columns already exist)
+# - [~] Discord permissions to confirm: View Channel, Send Messages, Embed Links in each log channel
+# - [~] Live verification: !logs set <event> <channel>, trigger events, !logs test <event>, !logs history
+
+# PHASE 9 - Automation System (IN PROGRESS)
+# - [x] Uses APScheduler 3.x (already pinned above); no new DB migration (automations table already exists)
+# - [~] Discord permissions to confirm: Send Messages, Embed Links, Manage Roles (autorole), Read Message History
+# - [~] Live verification: !automation announcement/message/reminder/stats/autorole/welcome/goodbye/response + restart persistence
+
+# PHASE 10 - Web Dashboard UI/UX (IN PROGRESS)
+# - [x] No new pip packages; dashboard uses npm: next 15.5.29, react 19.2.9, tailwindcss 4.3.5, @supabase/ssr 0.12.7, @supabase/supabase-js 2.119.1, typescript 5.9.3
+# - [x] Triumph branding + logo assets; public pages /, /terms, /privacy, /login; dashboard pages for overview/statistics/activity/settings/management; loading/empty/error states
+# - [~] Live browser verification after `npm run build` / `npm run start`
+
+# PHASE 11 - Web Dashboard Authentication (IN PROGRESS)
+# - [x] Supabase Auth Discord OAuth code path, session middleware refresh, route protection, logout
+# - [x] dashboard_admins checks + Discord identity/membership/role verification (optional DISCORD_BOT_TOKEN)
+# - [~] User-side setup: enable Discord provider + redirect URLs in Supabase; insert dashboard_admins row
+
