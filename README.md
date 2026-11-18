@@ -45,8 +45,9 @@ Live since 2026-11-19:
 
 - **Dashboard:** <https://triumph-bot-bice.vercel.app>
 - **Bot health:** <https://triumph-bot.onrender.com/health>
-- **Database/auth:** Supabase production project; Discord OAuth login and RLS
-  isolation verified.
+- **Database/auth:** Supabase production project; Discord OAuth login and
+  anonymous RLS blocking verified. Authenticated cross-guild testing remains in
+  Phase 14.
 - **Monitoring:** UptimeRobot reports the Render health and Vercel dashboard
   monitors as up on 5-minute checks.
 - **Automatic deploys:** Vercel GitHub integration reports a successful

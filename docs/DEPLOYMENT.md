@@ -280,8 +280,9 @@ Then complete the manual checks:
 Phase 13 is complete when the four platform tasks in `task.txt` are checked
 against the live services, not merely when the local configuration passes. At
 the 2026-11-19 close, Render health and UptimeRobot, Vercel deploy/login, and
-Supabase RLS checks passed. Restart persistence and the remaining command smoke
-checks are carried into Phase 14; backup/export execution remains operational.
+anonymous Supabase RLS blocking passed. Authenticated cross-guild testing,
+restart persistence, and the remaining command smoke checks are carried into
+Phase 14; backup/export execution remains operational.
 
 ---
 

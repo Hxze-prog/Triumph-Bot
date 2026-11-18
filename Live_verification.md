@@ -651,12 +651,13 @@ Phase 13 deployment completed 2026-11-19 against
 - [x] Render deploy succeeds; start command `python main.py`; health confirms the bot is ready and connected to the guild.
 - [x] Render `/health` returns 200; UptimeRobot monitors it every 5 minutes.
 - [x] Vercel deploy succeeds; production URL, env vars, and auth callback configured.
-- [x] Production dashboard login works; Supabase RLS still blocks cross-guild access.
+- [x] Production dashboard login works.
+- [ ] Supabase RLS blocks authenticated cross-guild access (Phase 14 security test; anonymous reads already return zero rows).
 - [ ] Restart bot on Render; automations and temp-voice reconciliation survive.
 - [x] Confirm no secrets in GitHub or browser bundles.
 
-Phase 13 items are complete. The unchecked restart/persistence item above carries
-into Phase 14.
+Phase 13 deployment items are complete. The unchecked authenticated cross-guild
+and restart/persistence checks carry into Phase 14.
 
 ---
 

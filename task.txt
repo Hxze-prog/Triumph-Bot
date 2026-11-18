@@ -180,7 +180,7 @@ PUBLIC COMMAND REFERENCE (added during Phase 12)
 
 PHASE 13 - DEPLOYMENT & HOSTING
 [x] Website - Vercel: deployed at https://triumph-bot-bice.vercel.app; production env/auth verified; GitHub auto-deploy status success
-[x] Database - Supabase: schema/connectivity verified, dashboard admin row present, anonymized RLS reads blocked, backup/export strategy documented
+[x] Database - Supabase: schema/connectivity verified, dashboard admin row present, anonymous RLS reads blocked, backup/export strategy documented
 [x] Discord Bot - Render: deployed at https://triumph-bot.onrender.com; /health 200 with bot_ready=true and guilds=1
 [x] Monitoring - UptimeRobot: Render health and Vercel dashboard monitors Up on 5-minute checks
 PHASE 13: COMPLETE
