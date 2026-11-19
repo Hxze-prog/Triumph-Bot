@@ -23,7 +23,8 @@ command smoke checks are tracked in Phase 14; backup/export execution remains an
 operational maintenance action.
 
 The procedures below remain the source of truth for rebuilds, key rotation, and
-recovery.
+recovery. For the test-to-production guild cutover and database cleanup, see
+[MIGRATION.md](MIGRATION.md).
 
 > The local repository must be committed and pushed to
 > `https://github.com/Hxze-prog/Triumph-Bot.git` before either host can deploy.
@@ -83,7 +84,7 @@ code, or the repository.
 
 ```sql
 insert into public.dashboard_admins (user_id, discord_id, guild_id, role)
-select u.id, 1111664537846951946, 1569030756515323974, 'admin'
+select u.id, 1111664537846951946, 1565983272217874535, 'admin'
 from auth.users u
 join auth.identities i on i.user_id = u.id
 where i.provider = 'discord'
@@ -148,7 +149,7 @@ bot. Do not commit dumps to Git.
 | Variable | Required | Value |
 | --- | --- | --- |
 | `DISCORD_TOKEN` | Yes | Bot token from the Discord Developer Portal |
-| `DISCORD_GUILD_ID` | Yes | `1569030756515323974` |
+| `DISCORD_GUILD_ID` | Yes | `1565983272217874535` |
 | `SUPABASE_URL` | Yes | `https://ycckkcglgfpdwjhrkiyr.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service-role key; secret |
 | `BOT_PREFIX` | Yes | `!` |
@@ -206,7 +207,7 @@ Set these for Production (and Preview if desired):
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anon/publishable key |
 | `NEXT_PUBLIC_APP_URL` | Yes | `https://<dashboard-domain>` (no trailing slash) |
 | `DISCORD_BOT_TOKEN` | Optional | Server-only membership/role verification |
-| `DISCORD_GUILD_ID` | Optional | `1569030756515323974` |
+| `DISCORD_GUILD_ID` | Optional | `1565983272217874535` |
 
 `NEXT_PUBLIC_*` values are embedded at build time. After changing them, trigger
 a new deployment. Never put the Supabase service-role key in a public variable.

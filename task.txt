@@ -197,10 +197,10 @@ PHASE 14 - TESTING & QUALITY ASSURANCE
 [ ] Test Supabase synchronization
 [ ] Test bot reconnection
 [ ] Test hosting interruptions
-[ ] Test security and access restrictions
-[ ] Bot lint/tests pass (ruff, pytest, compileall)
-[ ] Dashboard lint/typecheck/build pass
-PHASE 14: PENDING
+[~] Test security and access restrictions (anonymous RLS empty and unauth dashboard redirect verified; authenticated cross-guild test pending)
+[x] Bot lint/tests pass (ruff, pytest, compileall)
+[x] Dashboard lint/typecheck/build pass
+PHASE 14: IN PROGRESS (automated checks pass; live QA, authenticated cross-guild isolation, and restart/hosting tests pending)
 
 PHASE 15 - FINAL DEPLOYMENT & MAINTENANCE
 [ ] Final production deployment
@@ -210,11 +210,15 @@ PHASE 15 - FINAL DEPLOYMENT & MAINTENANCE
 [ ] Review application logs
 [ ] Fix reported bugs
 [ ] Optimize performance
-[ ] Document commands (docs/COMMANDS.md)
-[ ] Document dashboard usage (docs/DASHBOARD.md)
-[ ] Document deployment (docs/DEPLOYMENT.md)
-[ ] Prepare maintenance procedures (docs/MAINTENANCE.md)
-PHASE 15: PENDING
+[x] Migrate test server to real server (docs/MIGRATION.md + executed SQL record)
+[x] Clean test-guild data from Supabase after logical export
+[ ] Update Render DISCORD_GUILD_ID (Vercel updated and production redeployed)
+[ ] Verify dashboard login and real-guild settings after final service env update
+[x] Document commands (docs/COMMANDS.md)
+[x] Document dashboard usage (docs/DASHBOARD.md)
+[x] Document deployment (docs/DEPLOYMENT.md)
+[x] Prepare maintenance procedures (docs/MAINTENANCE.md)
+PHASE 15: IN PROGRESS (migration complete; dashboard login/settings and Render env pending)
 
 ---
 CHECKPOINT LOG
@@ -374,3 +378,25 @@ CHECKPOINT LOG
 [2026-11-19] Repository cleanup:
   - removed root Triumph_icon.png: byte-identical duplicate of dashboard/public/triumph-icon.png and dashboard/src/app/icon.png; dashboard copies retained
   - removed root requirements.txt: notes-only duplicate with no installable dependencies; Render installs from bot/requirements.txt under rootDir bot
+[2026-11-19] Phase 15 migration preparation and documentation:
+  - added docs/MIGRATION.md: clean test-to-production guild cutover, backup/removal/bootstrap/cleanup/env repoint/verification/rollback procedure
+  - added supabase/scripts/guild_migration_clean_start.sql: destructive manual template outside migrations; creates real guild/settings, copies dashboard admins, aborts if none, deletes test guild row with cascade, verifies all test counts are zero
+  - added docs/COMMANDS.md (93 commands, 10 modules), docs/DASHBOARD.md (access/pages/tasks/troubleshooting), docs/MAINTENANCE.md (checks/backups/secrets/incidents/quality)
+  - migration pending real guild ID/name/owner, verified Supabase backup, bot removal from test guild, SQL execution, Render/Vercel DISCORD_GUILD_ID update, and production cutover verification
+[2026-11-19] Phase 14 automated verification pass:
+  - bot ruff + compileall pass; pytest 56 passed; command inventory 93 bot / 93 dashboard / 93 expected, 10 modules
+  - dashboard typecheck + production build pass; 23 routes generated
+  - docs/COMMANDS.md bullet count verified at 93
+  - pending: live Discord command matrix, moderation/welcome/temp-voice/logging/automation behavior, dashboard writes, authenticated cross-guild RLS isolation, reconnect, hosting interruption, restart persistence
+[2026-11-19] Phase 15 clean-start migration executed:
+  - production guild: 1565983272217874535 "♛ 𝙏𝙍𝙄𝙄𝙐𝙈𝙋𝙃", owner 1064601909266239710
+  - created gzip JSON data export outside the repo before deletion (all public tables; 2 guilds, test activity included); Supabase managed-backup retention not independently verified
+  - confirmed real guild/settings rows from bot join; corrected guild name/owner and copied dashboard admin 1111664537846951946 to the real guild
+  - bot left test guild; deleted test guild row; all test-guild counts are zero
+  - post state: 1 guild, 1 guild_settings, 1 dashboard_admin, 1 activity_log, 0 other guild-scoped rows
+  - health: bot_ready=true, guilds=1; deployment verification 10/10 pass
+  - Vercel DISCORD_GUILD_ID updated to 1565983272217874535 and production redeployed (READY, alias confirmed)
+  - added security headers in dashboard/next.config.ts; typecheck/build pass, production redeployed, headers verified (HSTS, nosniff, DENY, referrer, permissions)
+  - verified production bot has Administrator (role hierarchy still applies); /dashboard redirects unauthenticated users to /login; anon REST reads return zero rows for guilds, admins, settings, members, and activity
+  - npm audit: Next 15.5.29 nested PostCSS advisories; forced fix is Next 16.4.6 major upgrade, deferred pending regression
+  - pending: Render DISCORD_GUILD_ID update, dashboard login, real-guild settings sync, and Phase 14 live QA

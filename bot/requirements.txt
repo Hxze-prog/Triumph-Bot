@@ -1,6 +1,6 @@
 # Triumph Bot - consolidated Python requirements (Phases 1-9, 14)
 # Runtime / Discord / API / DB
-discord.py>=2.4.0,<3.0.0
+discord.py[voice]>=2.4.0,<3.0.0
 python-dotenv>=1.0.1,<2.0.0
 supabase>=2.6.0,<3.0.0
 Flask>=3.0.0,<4.0.0

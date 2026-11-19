@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 import discord
+
 from core.settings import get_settings
 
 logger = logging.getLogger(__name__)

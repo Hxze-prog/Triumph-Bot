@@ -135,15 +135,15 @@ export const commandGroups: CommandGroup[] = [
       },
       {
         name: "lock",
-        usage: "!lock [#channel]",
-        description: "Prevent @everyone from sending messages in a channel.",
+        usage: "!lock [#channel|voice_channel]",
+        description: "Prevent @everyone from sending messages or joining a voice channel.",
         aliases: ["lockdown"],
         permission: "Manage Channels",
       },
       {
         name: "unlock",
-        usage: "!unlock [#channel]",
-        description: "Remove the @everyone send-messages override.",
+        usage: "!unlock [#channel|voice_channel]",
+        description: "Remove the @everyone send-messages or voice-connect override.",
         permission: "Manage Channels",
       },
       {
@@ -541,6 +541,26 @@ export const commandGroups: CommandGroup[] = [
         usage: "!tempvoice delete",
         description: "Delete your temporary channel.",
         permission: "Room owner",
+      },
+    ],
+  },
+  {
+    id: "voice",
+    title: "Voice control",
+    description: "Move the bot into or out of a voice channel on demand.",
+    icon: "mic",
+    commands: [
+      {
+        name: "join",
+        usage: "!join <voice_channel>",
+        description: "Join a voice channel by ID or mention, or your current channel if omitted.",
+        permission: "Move Members",
+      },
+      {
+        name: "leave",
+        usage: "!leave",
+        description: "Disconnect the bot from its current voice channel.",
+        permission: "Move Members",
       },
     ],
   },

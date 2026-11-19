@@ -4,8 +4,9 @@ import logging
 from datetime import datetime
 
 import discord
-from core.settings import get_settings
 from discord.ext import commands
+
+from core.settings import get_settings
 from services.durations import format_seconds, parse_duration
 from services.polls import (
     NUMBER_EMOJIS,

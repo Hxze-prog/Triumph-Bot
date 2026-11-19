@@ -63,7 +63,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Compare bot command definitions with the dashboard command list."
     )
-    parser.add_argument("--expect", type=int, default=93)
+    parser.add_argument("--expect", type=int, default=95)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 

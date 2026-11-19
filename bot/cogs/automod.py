@@ -5,9 +5,10 @@ import time
 from datetime import timedelta
 
 import discord
+from discord.ext import commands
+
 from core.permissions import can_manage_guild
 from core.settings import get_settings, save_settings
-from discord.ext import commands
 from services.automod_rules import (
     ALLOWED_DOMAINS,
     SpamTracker,

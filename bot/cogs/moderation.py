@@ -4,9 +4,10 @@ import logging
 from datetime import datetime
 
 import discord
+from discord.ext import commands
+
 from core.permissions import mod_or_admin
 from core.settings import get_settings, save_settings
-from discord.ext import commands
 from services.durations import format_duration, parse_duration
 from services.modlog import action_label, record_action
 
@@ -500,15 +501,26 @@ class Moderation(commands.Cog, name="Moderation"):
     async def lock(
         self,
         ctx: commands.Context,
-        channel: discord.TextChannel | None = None,
+        channel: discord.TextChannel | discord.VoiceChannel | None = None,
         *,
         reason: str = NO_REASON,
     ) -> None:
-        """Prevent @everyone from sending messages in a channel."""
+        """Prevent @everyone from sending messages or joining a voice channel."""
         target = channel or ctx.channel
         overwrite = target.overwrites_for(ctx.guild.default_role)
-        overwrite.send_messages = False
+        if isinstance(target, discord.VoiceChannel):
+            overwrite.connect = False
+        else:
+            overwrite.send_messages = False
         try:
+            if isinstance(target, discord.VoiceChannel) and ctx.guild.me is not None:
+                bot_overwrite = target.overwrites_for(ctx.guild.me)
+                bot_overwrite.connect = True
+                await target.set_permissions(
+                    ctx.guild.me,
+                    overwrite=bot_overwrite,
+                    reason=_audit_reason(ctx, reason),
+                )
             await target.set_permissions(
                 ctx.guild.default_role,
                 overwrite=overwrite,
@@ -541,14 +553,17 @@ class Moderation(commands.Cog, name="Moderation"):
     async def unlock(
         self,
         ctx: commands.Context,
-        channel: discord.TextChannel | None = None,
+        channel: discord.TextChannel | discord.VoiceChannel | None = None,
         *,
         reason: str = NO_REASON,
     ) -> None:
-        """Remove the @everyone send-messages override in a channel."""
+        """Remove the @everyone send-messages or voice-connect override."""
         target = channel or ctx.channel
         overwrite = target.overwrites_for(ctx.guild.default_role)
-        overwrite.send_messages = None
+        if isinstance(target, discord.VoiceChannel):
+            overwrite.connect = None
+        else:
+            overwrite.send_messages = None
         try:
             await target.set_permissions(
                 ctx.guild.default_role,

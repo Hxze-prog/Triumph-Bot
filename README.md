@@ -63,6 +63,8 @@ The deployment script passes all checks:
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full runbook, environment
 matrix, OAuth setup, backup/export strategy, rollback steps, and troubleshooting.
+To move from the test server to the real server, follow
+[docs/MIGRATION.md](docs/MIGRATION.md).
 
 ## Bot commands (current)
 - Core: `!ping`, `!botinfo`, `!dbping`, `!extensions`, `!prefix`, `!reload <ext>` (owner)
@@ -73,7 +75,7 @@ matrix, OAuth setup, backup/export strategy, rollback steps, and troubleshooting
 - Welcome banners use bundled DejaVu fonts (`bot/assets/fonts/`) so rendering is identical on Windows and Render.
 - Moderation: `!ban @user [reason]`, `!unban <id> [reason]`, `!kick @user [reason]`, `!timeout @user <10m|1h30m|2d> [reason]`, `!untimeout @user [reason]`
 - Warnings: `!warn @user [reason]`, `!warnings @user`, `!unwarn @user <id|latest>`
-- Channels: `!clear <1-500> [@user]`, `!lock [#channel] [reason]`, `!unlock [#channel] [reason]`
+- Channels: `!clear <1-500> [@user]`, `!lock [#channel|voice_channel] [reason]`, `!unlock [#channel|voice_channel] [reason]`
 - Mod logs: `!modlog [#channel|off]`, `!modlogs [@user] [limit]` (stored in Supabase `moderation_logs`)
 - Automod: `!automod` (status), `!automod spam|links|invites on|off`, `!automod threshold <1-50>`, `!automod interval <5s|1m>`, `!automod timeout <10m|off>`
 - Automod exemptions: server owner, administrators, and members with Manage Messages/Manage Server/Kick/Ban/Moderate Members.
@@ -86,6 +88,7 @@ matrix, OAuth setup, backup/export strategy, rollback steps, and troubleshooting
 - Temp voice setup: `!tempvoice setup #trigger [#category]`, `!tempvoice trigger|category|defaultlimit|template`
 - Temp voice owner: `!tempvoice name <name>`, `!tempvoice size <0-99>`, `!tempvoice lock|unlock`, `!tempvoice kick @member`, `!tempvoice claim`, `!tempvoice delete`, `!tempvoice status`
 - Temp voice records live in Supabase `temp_voice_channels`; empty channels are deleted automatically and stale records reconciled on startup.
+- Voice control: `!join <voice_channel>`, `!leave`; requires Move Members.
 - Logging: `!logs status`, `!logs set <event> #channel`, `!logs set <event> off`, `!logs test <event>`, `!logs history [event] [limit]`
 - Log events: join_leave, message_delete, message_edit, role_change, nickname_change, voice, moderation, channel_events (stored in `activity_logs`)
 - Automations: `!automation list`, `!automation status`, `!automation toggle <id|name>`, `!automation remove <id|name>`

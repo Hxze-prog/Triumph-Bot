@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import discord
+
 from services.discord_links import emoji_key, parse_emoji, parse_message_link
 
 

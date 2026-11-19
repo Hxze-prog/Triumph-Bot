@@ -4,9 +4,9 @@ import logging
 from pathlib import Path
 
 import discord
-from config import Config
 from discord.ext import commands
 
+from config import Config
 from core.database import Database
 from core.settings_cache import TTLCache
 

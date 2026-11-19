@@ -5,8 +5,9 @@ import threading
 from datetime import UTC, datetime
 from typing import Any
 
-from config import Config
 from flask import Flask, jsonify
+
+from config import Config
 
 logger = logging.getLogger(__name__)
 

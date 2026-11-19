@@ -3,8 +3,9 @@ from __future__ import annotations
 import platform
 
 import discord
-from core.permissions import is_owner_or_guild_admin
 from discord.ext import commands
+
+from core.permissions import is_owner_or_guild_admin
 
 
 class CoreAdmin(commands.Cog):

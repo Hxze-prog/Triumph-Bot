@@ -8,8 +8,9 @@ from io import BytesIO
 from typing import Any, TypeVar
 
 import discord
-from core.permissions import can_manage_guild
 from discord.ext import commands
+
+from core.permissions import can_manage_guild
 from services import banner as banner_service
 from services import templates
 

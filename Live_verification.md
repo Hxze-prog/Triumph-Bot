@@ -1,9 +1,10 @@
 # Triumph Live Verification Checklist
 
 - **Repository:** `C:\Users\Jojit\Desktop\Triump Bot`
-- **Discord guild:** `1569030756515323974`
+- **Production guild:** `1565983272217874535` (`♛ 𝙏𝙍𝙄𝙄𝙐𝙈𝙋𝙃`)
+- **Legacy test guild:** `1569030756515323974` (bot removed; database cleaned)
 - **Dashboard:** local `http://localhost:3000` (or production URL)
-- **Command inventory:** 93 commands across 10 modules
+- **Command inventory:** 95 commands across 11 modules
 - **Last updated:** 2026-11-19
 
 ## How to use this file
@@ -52,7 +53,7 @@ Replace these with your test assets:
 - [ ] `dashboard/.env.local` contains `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_APP_URL`
 - [ ] Supabase migrations `0001`–`0003` applied and RLS policies active
 - [ ] `dashboard_admins` row exists for your Discord ID (`SETUP_DASHBOARD_ADMIN.txt`)
-- [ ] Bot has Administrator in the test guild (or all required permissions)
+- [x] Bot has Administrator in the production guild (verified 2026-11-19; role hierarchy still applies)
 - [ ] ALT, `@TestRole`, `#test`, `#mod-log`, and log channels exist
 - [ ] Server Members and Message Content intents enabled in the Discord developer portal
 
@@ -68,7 +69,7 @@ Replace these with your test assets:
   ```
 
 - [ ] Startup log shows `Triumph Bot starting`
-- [ ] Startup log shows all 10 extensions loaded
+- [ ] Startup log shows all 11 extensions loaded
 - [ ] Startup log shows `Logged in as ...` and `Guilds: 1`
 - [ ] Startup log shows Supabase reachable
 - [ ] Health endpoint responds (replace `PORT` with `bot/.env` `PORT`, default `8080`):
@@ -77,7 +78,7 @@ Replace these with your test assets:
   Invoke-RestMethod http://localhost:8080/health
   ```
 
-- [ ] Command inventory check passes:
+- [x] Command inventory check passes:
 
   ```powershell
   cd C:\Users\Jojit\Desktop\Triump Bot
@@ -98,9 +99,9 @@ Replace these with your test assets:
 
 ---
 
-## 2. Registration audit: prove all 93 commands exist
+## 2. Registration audit: prove all 95 commands exist
 
-The dashboard and bot both define exactly 93 commands.
+The dashboard and bot both define exactly 95 commands.
 
 | Module | Count |
 | --- | ---: |
@@ -113,8 +114,9 @@ The dashboard and bot both define exactly 93 commands.
 | reaction_roles | 4 |
 | server | 11 |
 | temp_voice | 14 |
+| voice_control | 2 |
 | welcome | 19 |
-| **Total** | **93** |
+| **Total** | **95** |
 
 - [ ] `!help`
 - [ ] `!help automation`
@@ -125,18 +127,20 @@ The dashboard and bot both define exactly 93 commands.
 - [ ] `!help poll`
 - [ ] `!help serverstats`
 - [ ] `!help tempvoice`
+- [ ] `!help join`
+- [ ] `!help leave`
 - [ ] `!help welcome`
 - [ ] `!help goodbye`
 - [ ] `!help autorole`
-- [ ] `!extensions` shows all 10 cogs
-- [ ] Command tree count matches 93 (the dashboard `/command` page also shows 93)
+- [ ] `!extensions` shows all 11 cogs
+- [ ] Command tree count matches 95 (the dashboard `/command` page also shows 95)
 
-> The 93 count includes group parent commands such as `!automation` and `!welcome`.
+> The 95 count includes group parent commands such as `!automation` and `!welcome`.
 > Subcommands appear under their group in `!help <group>`. Aliases do not add to the count.
 
 ---
 
-## 3. Command matrix: all 93 commands
+## 3. Command matrix: all 95 commands
 
 Run these in `#test` unless noted. For setting changes, restore the original value.
 
@@ -189,9 +193,11 @@ Run these in `#test` unless noted. For setting changes, restore the original val
   - Run: `!lock #test`
   - Expect: `@everyone` send messages denied; ALT cannot post.
   - Cleanup: `!unlock #test`
+  - Voice check: run `!lock #v-trigger`; `@everyone` Connect is denied, the bot keeps Connect, and ALT cannot join. Cleanup: `!unlock #v-trigger`.
 - [ ] **unlock**
   - Run: `!unlock #test`
   - Expect: `@everyone` send-messages override removed; ALT can post.
+  - Voice check: `!unlock #v-trigger` removes the Connect denial; ALT can join again.
   - Cleanup: none.
 - [ ] **modlog**
   - Run: `!modlog #mod-log`
@@ -531,7 +537,7 @@ Run these in `#test` unless noted. For setting changes, restore the original val
   - Cleanup: none.
 - [ ] **extensions**
   - Run: `!extensions`
-  - Expect: all 10 loaded extensions/cogs listed.
+  - Expect: all 11 loaded extensions/cogs listed.
   - Cleanup: none.
 - [ ] **prefix**
   - Run: `!prefix`
@@ -540,6 +546,17 @@ Run these in `#test` unless noted. For setting changes, restore the original val
 - [ ] **reload**
   - Run: `!reload cogs.general` (bot owner only)
   - Expect: extension reloaded confirmation; commands still work.
+  - Cleanup: none.
+
+### 3.11 Voice control (2)
+
+- [ ] **join**
+  - Run: `!join #v-trigger` (or the voice channel ID)
+  - Expect: bot joins the channel; run it again and it reports already connected.
+  - Cleanup: `!leave`
+- [ ] **leave**
+  - Run: `!leave`
+  - Expect: bot disconnects from voice; running again reports it is not connected.
   - Cleanup: none.
 
 ---
@@ -609,7 +626,7 @@ Configure each channel with `!logs set`, then trigger the event:
 ### 4.6 Phase 10: public site and dashboard UI
 
 - [ ] `/` returns 200 with branding and no console errors.
-- [ ] `/command` returns 200; shows 93 commands and 10 modules.
+- [ ] `/command` returns 200; shows 95 commands and 11 modules.
 - [ ] `/command` search filters by name, usage, and alias.
 - [ ] `/command` category buttons filter correctly; empty search state appears.
 - [ ] Header/footer Commands links navigate to `/command`.
@@ -642,7 +659,7 @@ Configure each channel with `!logs set`, then trigger the event:
 
 ### 4.9 Phases 13–15: deployment (when production is ready)
 
-Runbook: [docs/DEPLOYMENT.md](DEPLOYMENT.md). Automated check: `scripts/verify_deployment.ps1`.
+Runbook: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Automated check: `scripts/verify_deployment.ps1`.
 
 Phase 13 deployment completed 2026-11-19 against
 `https://triumph-bot-bice.vercel.app` and
@@ -651,13 +668,35 @@ Phase 13 deployment completed 2026-11-19 against
 - [x] Render deploy succeeds; start command `python main.py`; health confirms the bot is ready and connected to the guild.
 - [x] Render `/health` returns 200; UptimeRobot monitors it every 5 minutes.
 - [x] Vercel deploy succeeds; production URL, env vars, and auth callback configured.
-- [x] Production dashboard login works.
+- [x] Production dashboard login works (verified on the legacy test guild; real-guild recheck in 4.10).
 - [ ] Supabase RLS blocks authenticated cross-guild access (Phase 14 security test; anonymous reads already return zero rows).
 - [ ] Restart bot on Render; automations and temp-voice reconciliation survive.
 - [x] Confirm no secrets in GitHub or browser bundles.
 
 Phase 13 deployment items are complete. The unchecked authenticated cross-guild
 and restart/persistence checks carry into Phase 14.
+
+### 4.10 Phase 15: test-to-production guild migration
+
+Runbook: [docs/MIGRATION.md](docs/MIGRATION.md). Executed SQL record:
+`supabase/scripts/guild_migration_1565983272217874535.sql`.
+
+The clean-start cutover executed on 2026-11-19. Remaining: update provider
+environment variables and verify dashboard access/settings on the real guild.
+
+- [x] Logical data export created and stored outside the repository.
+- [x] Bot removed from the test guild.
+- [x] Bot invited and authorized on the real guild.
+- [x] Bot has Administrator there; role hierarchy still limits actions above its role.
+- [x] Real `guilds`, `guild_settings`, and `dashboard_admins` rows created.
+- [x] Test guild row deleted; every guild-scoped test count is zero.
+- [x] Vercel `DISCORD_GUILD_ID` updated and production redeployed.
+- [ ] Render `DISCORD_GUILD_ID` updated.
+- [x] `/health` shows `guilds=1` and the deployment script passes.
+- [x] Unauthenticated `/dashboard` redirects to `/login`; anon REST reads return zero rows.
+- [ ] Dashboard login resolves to the real guild.
+- [ ] Real-guild settings write reaches the bot within 30 seconds.
+- [x] Live checklist guild header and documentation use the production ID.
 
 ---
 
@@ -690,7 +729,7 @@ and restart/persistence checks carry into Phase 14.
 - **Date:** ____________________
 - **Bot version/commit:** ____________________
 - **Guild ID:** ____________________
-- **Commands checked:** ____ / 93
+- **Commands checked:** ____ / 95
 - **PASS:** ____
 - **FAIL:** ____
 - **BLOCKED:** ____

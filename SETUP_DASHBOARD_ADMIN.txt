@@ -1,6 +1,6 @@
 TRIUMPH DASHBOARD - ADMIN ACCESS SETUP
 Discord user ID: 1111664537846951946
-Guild ID:        1569030756515323974
+Guild ID:        1565983272217874535
 
 HOW TO USE
 1. Open Supabase Dashboard -> SQL Editor.
@@ -14,7 +14,7 @@ with Discord, even if it showed "not registered". That creates your auth user.
 STEP 1 - GRANT ADMIN ACCESS
 ------------------------------------------------------------
 insert into public.dashboard_admins (user_id, discord_id, guild_id, role)
-select u.id, 1111664537846951946, 1569030756515323974, 'admin'
+select u.id, 1111664537846951946, 1565983272217874535, 'admin'
 from auth.users u
 join auth.identities i on i.user_id = u.id
 where i.provider = 'discord'
@@ -27,7 +27,7 @@ STEP 2 - VERIFY
 ------------------------------------------------------------
 select user_id, discord_id, guild_id, role, created_at
 from public.dashboard_admins
-where guild_id = 1569030756515323974;
+where guild_id = 1565983272217874535;
 
 Expected: exactly one row with discord_id 1111664537846951946 and role admin.
 
@@ -37,8 +37,8 @@ TROUBLESHOOTING
   /login again, then rerun STEP 1.
 - Error "violates foreign key constraint ... guilds": the guild row is
   missing. Run this first, then repeat STEP 1:
-    insert into public.guilds (id, name)
-    values (1569030756515323974, 'Triumph Server')
+    insert into public.guilds (id, name, owner_id)
+    values (1565983272217874535, '♛ 𝙏𝙍𝙄𝙄𝙐𝙈𝙋𝙃', 1064601909266239710)
     on conflict (id) do nothing;
 
 OPTIONAL - REQUIRE A DISCORD ROLE FOR DASHBOARD ACCESS
@@ -48,9 +48,9 @@ Replace ROLE_ID with the Discord role ID (number, no quotes).
 
 update public.guild_settings
 set dashboard_admin_role_ids = array[ROLE_ID]::bigint[]
-where guild_id = 1569030756515323974;
+where guild_id = 1565983272217874535;
 
 To undo role gating later:
 update public.guild_settings
 set dashboard_admin_role_ids = '{}'
-where guild_id = 1569030756515323974;
+where guild_id = 1565983272217874535;

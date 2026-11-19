@@ -3,8 +3,9 @@ from __future__ import annotations
 import logging
 
 import discord
-from core.settings import get_settings
 from discord.ext import commands
+
+from core.settings import get_settings
 from services.discord_links import emoji_key, parse_emoji, parse_message_link
 
 logger = logging.getLogger(__name__)

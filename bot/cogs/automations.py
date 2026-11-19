@@ -9,9 +9,10 @@ import discord
 from apscheduler.jobstores.base import JobLookupError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from discord.ext import commands, tasks
+
 from core.settings import get_settings
 from core.settings_cache import TTLCache
-from discord.ext import commands, tasks
 from services.automations import (
     AUTOMATION_TYPES,
     CRON_HELP,
